@@ -1,0 +1,21 @@
+{
+  "name": "Sentinelle",
+  "short_name": "Sentinelle",
+  "description": "Réseau d'alerte citoyenne interactif",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0A0A0A",
+  "theme_color": "#0A0A0A",
+  "icons": [
+    {
+      "src": "https://res.cloudinary.com/droxtvmsy/image/upload/v1779060726/IMG-20260517-WA0007_rff0ko.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "https://res.cloudinary.com/droxtvmsy/image/upload/v1779060726/IMG-20260517-WA0007_rff0ko.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
