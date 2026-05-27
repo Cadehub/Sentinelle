@@ -13,6 +13,8 @@ import {
   Send,
   Menu,
   X,
+  Shield,
+  Plus,
 } from 'lucide-react'
 
 interface Alert {
@@ -34,12 +36,21 @@ interface Profile {
   banned_at?: string
 }
 
+interface ForbiddenWord {
+  id: string
+  word: string
+  category: string
+  is_active: boolean
+  created_at: string
+  reason?: string
+}
+
 export default function AdminDashboard() {
   const { user } = useAuth()
   const navigate = useNavigate()
 
   // ========== STATE ==========
-  const [activeTab, setActiveTab] = useState<'moderation' | 'users' | 'broadcast'>('moderation')
+  const [activeTab, setActiveTab] = useState<'moderation' | 'users' | 'broadcast' | 'forbidden_words'>('moderation')
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [alerts, setAlerts] = useState<Alert[]>([])
@@ -59,6 +70,13 @@ export default function AdminDashboard() {
   const [isSubmittingBroadcast, setIsSubmittingBroadcast] = useState(false)
   const [activeBroadcasts, setActiveBroadcasts] = useState<any[]>([])
   const [isLoadingBroadcasts, setIsLoadingBroadcasts] = useState(false)
+
+  // Forbidden Words tab state
+  const [forbiddenWords, setForbiddenWords] = useState<ForbiddenWord[]>([])
+  const [newWord, setNewWord] = useState('')
+  const [newWordCategory, setNewWordCategory] = useState('general')
+  const [newWordReason, setNewWordReason] = useState('')
+  const [isAddingWord, setIsAddingWord] = useState(false)
 
   // ========== SECURITY CHECK ==========
   useEffect(() => {
@@ -95,6 +113,8 @@ export default function AdminDashboard() {
       fetchUsers()
     } else if (activeTab === 'broadcast') {
       fetchActiveBroadcasts()
+    } else if (activeTab === 'forbidden_words') {
+      fetchForbiddenWords()
     }
   }, [activeTab])
 
@@ -281,6 +301,131 @@ export default function AdminDashboard() {
       showToast('Erreur lors du bannissement', 'error')
     } finally {
       setIsBanning(false)
+    }
+  }
+
+  // ========== FETCH FORBIDDEN WORDS ==========
+  const fetchForbiddenWords = async () => {
+    setIsLoading(true)
+    try {
+      const { data, error } = await supabase
+        .from('forbidden_words')
+        .select('*')
+        .order('created_at', { ascending: false })
+
+      if (error) throw error
+
+      setForbiddenWords(data || [])
+    } catch (error) {
+      console.error('Error fetching forbidden words:', error)
+      showToast('Erreur lors du chargement des mots interdits', 'error')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  // ========== ADD FORBIDDEN WORD ==========
+  const addForbiddenWord = async () => {
+    if (!newWord.trim()) {
+      showToast('Veuillez entrer un mot', 'error')
+      return
+    }
+
+    setIsAddingWord(true)
+    try {
+      const { error } = await supabase.from('forbidden_words').insert({
+        word: newWord.trim().toLowerCase(),
+        category: newWordCategory,
+        reason: newWordReason.trim() || null,
+        is_active: true,
+        created_by: user?.id
+      })
+
+      if (error) {
+        if (error.message.includes('duplicate')) {
+          showToast('Ce mot existe déjà', 'error')
+        } else {
+          throw error
+        }
+        return
+      }
+
+      // Log action
+      await supabase.from('audit_logs').insert({
+        admin_id: user?.id,
+        action: 'forbidden_word_added',
+        target_id: 'system',
+        target_type: 'forbidden_word',
+        details: {
+          word: newWord.trim().toLowerCase(),
+          category: newWordCategory,
+          reason: newWordReason.trim() || null,
+          created_by: user?.email
+        }
+      })
+
+      showToast('Mot interdit ajouté avec succès', 'success')
+      setNewWord('')
+      setNewWordReason('')
+      setNewWordCategory('general')
+      await fetchForbiddenWords()
+    } catch (error) {
+      console.error('Error adding forbidden word:', error)
+      showToast('Erreur lors de l\'ajout du mot', 'error')
+    } finally {
+      setIsAddingWord(false)
+    }
+  }
+
+  // ========== DELETE FORBIDDEN WORD ==========
+  const deleteForbiddenWord = async (wordId: string, wordText: string) => {
+    if (!window.confirm(`Êtes-vous sûr de vouloir supprimer le mot "${wordText}" ?`)) {
+      return
+    }
+
+    try {
+      const { error } = await supabase
+        .from('forbidden_words')
+        .delete()
+        .eq('id', wordId)
+
+      if (error) throw error
+
+      // Log action
+      await supabase.from('audit_logs').insert({
+        admin_id: user?.id,
+        action: 'forbidden_word_deleted',
+        target_id: wordId,
+        target_type: 'forbidden_word',
+        details: {
+          word: wordText,
+          deleted_by: user?.email
+        }
+      })
+
+      showToast(`"${wordText}" a été supprimé`, 'success')
+      await fetchForbiddenWords()
+    } catch (error) {
+      console.error('Error deleting forbidden word:', error)
+      showToast('Erreur lors de la suppression', 'error')
+    }
+  }
+
+  // ========== TOGGLE FORBIDDEN WORD STATUS ==========
+  const toggleForbiddenWordStatus = async (wordId: string, currentStatus: boolean, wordText: string) => {
+    try {
+      const { error } = await supabase
+        .from('forbidden_words')
+        .update({ is_active: !currentStatus })
+        .eq('id', wordId)
+
+      if (error) throw error
+
+      showToast(`"${wordText}" est maintenant ${!currentStatus ? 'activé' : 'désactivé'}`, 'success')
+      await fetchForbiddenWords()
+    } catch (error) {
+      console.error('Error toggling forbidden word status:', error)
+      showToast('Erreur lors de la modification', 'error')
     }
   }
 
@@ -542,6 +687,22 @@ export default function AdminDashboard() {
               <Megaphone className="w-5 h-5" />
               <span>Broadcast</span>
               {activeTab === 'broadcast' && <ChevronRight className="w-4 h-4 ml-auto" />}
+            </button>
+
+            <button
+              onClick={() => {
+                setActiveTab('forbidden_words')
+                setIsMobileMenuOpen(false)
+              }}
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition ${
+                activeTab === 'forbidden_words'
+                  ? 'bg-blue-600 text-white'
+                  : 'text-[var(--text-secondary)] hover:bg-[var(--bg-primary)]'
+              }`}
+            >
+              <Shield className="w-5 h-5" />
+              <span>Security</span>
+              {activeTab === 'forbidden_words' && <ChevronRight className="w-4 h-4 ml-auto" />}
             </button>
           </nav>
 
@@ -912,6 +1073,145 @@ export default function AdminDashboard() {
                         </div>
                       </div>
                     ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* ========== FORBIDDEN WORDS TAB ========== */}
+          {activeTab === 'forbidden_words' && (
+            <div className="space-y-4 md:space-y-6">
+              <div>
+                <h2 className="text-2xl md:text-3xl font-bold text-[var(--text-primary)] mb-2">Forbidden Words Management</h2>
+                <p className="text-sm md:text-base text-[var(--text-secondary)]">Add and manage words that trigger security policies</p>
+              </div>
+
+              {/* Add New Word Form */}
+              <div className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-lg p-4 md:p-6 space-y-4">
+                <h3 className="text-lg font-semibold text-[var(--text-primary)]">Add Forbidden Word</h3>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-semibold text-[var(--text-primary)] mb-2">
+                      Word/Phrase
+                    </label>
+                    <input
+                      type="text"
+                      value={newWord}
+                      onChange={(e) => setNewWord(e.target.value)}
+                      placeholder="e.g., 'western union', 'bitcoin'"
+                      disabled={isAddingWord}
+                      className="w-full px-4 py-3 border border-[var(--border-color)] bg-[var(--bg-primary)] text-[var(--text-primary)] rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 text-sm md:text-base"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold text-[var(--text-primary)] mb-2">
+                      Category
+                    </label>
+                    <select
+                      value={newWordCategory}
+                      onChange={(e) => setNewWordCategory(e.target.value)}
+                      disabled={isAddingWord}
+                      className="w-full px-4 py-3 border border-[var(--border-color)] bg-[var(--bg-primary)] text-[var(--text-primary)] rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 text-sm md:text-base"
+                    >
+                      <option value="general">General</option>
+                      <option value="financial">Financial Scam</option>
+                      <option value="contact">Contact Request</option>
+                      <option value="crypto">Cryptocurrency</option>
+                      <option value="payment">Payment Service</option>
+                      <option value="other">Other</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-[var(--text-primary)] mb-2">
+                    Reason (Optional)
+                  </label>
+                  <input
+                    type="text"
+                    value={newWordReason}
+                    onChange={(e) => setNewWordReason(e.target.value)}
+                    placeholder="e.g., 'High fraud risk', 'Phishing indicator'"
+                    disabled={isAddingWord}
+                    className="w-full px-4 py-3 border border-[var(--border-color)] bg-[var(--bg-primary)] text-[var(--text-primary)] rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 text-sm md:text-base"
+                  />
+                </div>
+
+                <button
+                  onClick={addForbiddenWord}
+                  disabled={isAddingWord || !newWord.trim()}
+                  className="w-full flex items-center justify-center gap-2 px-6 py-3 md:py-4 bg-green-600 hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg font-bold text-base md:text-lg transition"
+                >
+                  <Plus className="w-5 h-5" />
+                  {isAddingWord ? 'Adding...' : 'Add Word'}
+                </button>
+              </div>
+
+              {/* Forbidden Words List */}
+              <div className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-lg overflow-hidden">
+                {isLoading ? (
+                  <div className="p-6">
+                    <SkeletonLoader />
+                  </div>
+                ) : forbiddenWords.length === 0 ? (
+                  <div className="p-8 md:p-12 text-center text-[var(--text-tertiary)] text-sm md:text-base">
+                    No forbidden words yet
+                  </div>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-xs md:text-sm">
+                      <thead className="border-b border-[var(--border-color)] bg-[var(--bg-primary)]">
+                        <tr>
+                          <th className="px-3 md:px-6 py-3 text-left font-semibold text-[var(--text-primary)]">Word</th>
+                          <th className="hidden sm:table-cell px-3 md:px-6 py-3 text-left font-semibold text-[var(--text-primary)]">Category</th>
+                          <th className="hidden md:table-cell px-3 md:px-6 py-3 text-left font-semibold text-[var(--text-primary)]">Reason</th>
+                          <th className="px-3 md:px-6 py-3 text-center font-semibold text-[var(--text-primary)]">Status</th>
+                          <th className="px-3 md:px-6 py-3 text-right font-semibold text-[var(--text-primary)]">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {forbiddenWords.map((word) => (
+                          <tr key={word.id} className="border-b border-[var(--border-color)] hover:bg-[var(--bg-primary)] transition">
+                            <td className="px-3 md:px-6 py-4 font-medium text-[var(--text-primary)]">
+                              <code className="bg-[var(--bg-primary)] px-2 py-1 rounded text-xs md:text-sm">
+                                {word.word}
+                              </code>
+                            </td>
+                            <td className="hidden sm:table-cell px-3 md:px-6 py-4 text-[var(--text-secondary)] text-xs md:text-sm">
+                              <span className="inline-block bg-blue-500/20 text-blue-600 dark:text-blue-400 px-2 py-1 rounded text-xs">
+                                {word.category}
+                              </span>
+                            </td>
+                            <td className="hidden md:table-cell px-3 md:px-6 py-4 text-[var(--text-tertiary)] text-xs md:text-sm">
+                              {word.reason || '-'}
+                            </td>
+                            <td className="px-3 md:px-6 py-4 text-center">
+                              <button
+                                onClick={() => toggleForbiddenWordStatus(word.id, word.is_active, word.word)}
+                                className={`px-2 py-1 rounded text-xs font-medium transition ${
+                                  word.is_active
+                                    ? 'bg-green-500/20 text-green-600 dark:text-green-400'
+                                    : 'bg-gray-500/20 text-gray-600 dark:text-gray-400'
+                                }`}
+                              >
+                                {word.is_active ? 'Active' : 'Inactive'}
+                              </button>
+                            </td>
+                            <td className="px-3 md:px-6 py-4 text-right">
+                              <button
+                                onClick={() => deleteForbiddenWord(word.id, word.word)}
+                                className="px-3 py-1 bg-red-600 hover:bg-red-700 text-white rounded text-xs font-medium transition"
+                              >
+                                Delete
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
                   </div>
                 )}
               </div>
