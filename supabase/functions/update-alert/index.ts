@@ -1,20 +1,34 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2"
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+const ALLOWED_ORIGINS = [
+  'http://localhost:3000',
+  'http://10.195.25.254:3000',
+  'https://sentinelle-v1.netlify.app',
+  'https://sentinelle.com',
+  'https://www.sentinelle.com'
+]
+
+function getCorsHeaders(req: Request) {
+  const origin = req.headers.get("origin")
+  const allowOrigin = ALLOWED_ORIGINS.includes(origin || '') ? origin! : ALLOWED_ORIGINS[0]
+
+  return {
+    'Access-Control-Allow-Origin': allowOrigin,
+    'Access-Control-Allow-Methods': 'POST, OPTIONS, GET, DELETE',
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apiKey, content-type',
+  }
 }
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders })
+    return new Response('ok', { headers: getCorsHeaders(req) })
   }
 
   try {
     const authHeader = req.headers.get('Authorization')
     if (!authHeader) {
-      return new Response(JSON.stringify({ error: 'Jeton de connexion manquant' }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+      return new Response(JSON.stringify({ error: 'Jeton de connexion manquant' }), { status: 401, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } })
     }
 
     // Extraire user_id du JWT
@@ -27,7 +41,7 @@ serve(async (req) => {
       userId = decoded.sub
       if (!userId) throw new Error('No sub in JWT')
     } catch (err) {
-      return new Response(JSON.stringify({ error: 'Jeton invalide' }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+      return new Response(JSON.stringify({ error: 'Jeton invalide' }), { status: 401, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } })
     }
 
     const supabaseClient = createClient(
@@ -39,7 +53,7 @@ serve(async (req) => {
     const { id, title, description, type, city, neighborhood, contact, duration_days, status } = await req.json()
 
     if (!id) {
-      return new Response(JSON.stringify({ error: 'ID de l\'alerte manquant' }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+      return new Response(JSON.stringify({ error: 'ID de l\'alerte manquant' }), { status: 400, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } })
     }
 
     // Vérifier que l'utilisateur est bien l'auteur
@@ -50,11 +64,11 @@ serve(async (req) => {
       .single()
 
     if (fetchError || !alert) {
-      return new Response(JSON.stringify({ error: 'Alerte non trouvée' }), { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+      return new Response(JSON.stringify({ error: 'Alerte non trouvée' }), { status: 404, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } })
     }
 
     if (alert.user_id !== userId) {
-      return new Response(JSON.stringify({ error: 'Vous n\'êtes pas autorisé à modifier cette alerte' }), { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+      return new Response(JSON.stringify({ error: 'Vous n\'êtes pas autorisé à modifier cette alerte' }), { status: 403, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } })
     }
 
     // Correction via Gemini si description modifiée
@@ -111,7 +125,7 @@ Ville: "${city}"`
                 const moderationResult = JSON.parse(jsonMatch[0])
                 
                 if (moderationResult.status === 'rejected') {
-                  return new Response(JSON.stringify({ error: `Contenu inapproprié: ${moderationResult.reason}` }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+                  return new Response(JSON.stringify({ error: `Contenu inapproprié: ${moderationResult.reason}` }), { status: 400, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } })
                 }
                 
                 correctedDescription = moderationResult.corrected_text || description
@@ -149,7 +163,7 @@ Ville: "${city}"`
     if (status) updateData.status = status
 
     if (Object.keys(updateData).length === 0) {
-      return new Response(JSON.stringify({ error: 'Aucune donnée à mettre à jour' }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+      return new Response(JSON.stringify({ error: 'Aucune donnée à mettre à jour' }), { status: 400, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } })
     }
 
     // Mettre à jour l'alerte
@@ -164,9 +178,9 @@ Ville: "${city}"`
       throw updateError
     }
 
-    return new Response(JSON.stringify({ success: true, alert: updatedAlert }), { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+    return new Response(JSON.stringify({ success: true, alert: updatedAlert }), { status: 200, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } })
   } catch (error) {
     console.error('[update-alert]', error)
-    return new Response(JSON.stringify({ error: error.message }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+    return new Response(JSON.stringify({ error: error.message }), { status: 500, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } })
   }
 })

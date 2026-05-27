@@ -11,7 +11,7 @@ export type Profile = {
 };
 
 /**
- * ✅ Hook pour récupérer le profil utilisateur avec gestion d'erreurs robuste
+ * Hook pour récupérer le profil utilisateur avec gestion d'erreurs robuste
  * - Attend le chargement de l'auth avant de chercher le profil
  * - Gère les cas où le profil n'existe pas encore
  * - Subscribe aux changements real-time

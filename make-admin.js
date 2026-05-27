@@ -9,7 +9,7 @@ const email = 'ethanbiteckbdbec@gmail.com'
 
 async function makeAdmin() {
   try {
-    console.log(`🔄 Mise à jour du rôle pour ${email}...`)
+    console.log(`Mise à jour du rôle pour ${email}...`)
 
     const { data, error } = await supabase
       .from('profiles')
@@ -18,20 +18,20 @@ async function makeAdmin() {
       .select()
 
     if (error) {
-      console.error('❌ Erreur:', error.message)
+      console.error('Erreur:', error.message)
       process.exit(1)
     }
 
     if (data && data.length > 0) {
-      console.log('✅ Succès! Profil mis à jour:')
+      console.log('Succès! Profil mis à jour:')
       console.log(`   Email: ${data[0].email}`)
       console.log(`   Rôle: ${data[0].role}`)
-      console.log('\n💡 Recharge l\'app pour voir les changements.')
+      console.log('\n Recharge l\'app pour voir les changements.')
     } else {
       console.log('⚠️  Aucun profil trouvé avec cet email.')
     }
   } catch (err) {
-    console.error('❌ Erreur:', err.message)
+    console.error(' Erreur:', err.message)
     process.exit(1)
   }
 }

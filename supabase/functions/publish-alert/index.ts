@@ -4,7 +4,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2"
 const ALLOWED_ORIGINS = [
   'http://localhost:3000',
   'http://10.195.25.254:3000',
-  'https://sentinelle.netlify.app',
+  'https://sentinelle-v1.netlify.app',
   'https://sentinelle.com',
   'https://www.sentinelle.com'
 ]

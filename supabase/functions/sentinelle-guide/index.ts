@@ -3,7 +3,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 const ALLOWED_ORIGINS = [
   'http://localhost:3000',
   'http://10.195.25.254:3000',
-  'https://sentinelle.netlify.app',
+  'https://sentinelle-v1.netlify.app',
   'https://sentinelle.com',
   'https://www.sentinelle.com'
 ]

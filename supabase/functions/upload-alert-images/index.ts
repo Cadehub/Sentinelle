@@ -1,13 +1,27 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+const ALLOWED_ORIGINS = [
+  'http://localhost:3000',
+  'http://10.195.25.254:3000',
+  'https://sentinelle-v1.netlify.app',
+  'https://sentinelle.com',
+  'https://www.sentinelle.com'
+]
+
+function getCorsHeaders(req: Request) {
+  const origin = req.headers.get("origin")
+  const allowOrigin = ALLOWED_ORIGINS.includes(origin || '') ? origin! : ALLOWED_ORIGINS[0]
+
+  return {
+    'Access-Control-Allow-Origin': allowOrigin,
+    'Access-Control-Allow-Methods': 'POST, OPTIONS, GET, DELETE',
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apiKey, content-type',
+  }
 }
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders })
+    return new Response('ok', { headers: getCorsHeaders(req) })
   }
 
   try {
@@ -16,7 +30,7 @@ serve(async (req) => {
     if (!images || images.length === 0) {
       return new Response(JSON.stringify({ error: 'No images provided' }), { 
         status: 400, 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } 
       })
     }
 
@@ -24,7 +38,7 @@ serve(async (req) => {
     if (!imgbbKey) {
       return new Response(JSON.stringify({ error: 'ImgBB API key not configured' }), { 
         status: 500, 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } 
       })
     }
 
@@ -49,13 +63,13 @@ serve(async (req) => {
     }
 
     return new Response(JSON.stringify({ urls: uploadedImages }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' },
       status: 200,
     })
   } catch (error) {
     console.error('Error:', error)
     return new Response(JSON.stringify({ error: error.message }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' },
       status: 500,
     })
   }
