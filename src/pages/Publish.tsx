@@ -4,10 +4,11 @@ import { supabase } from "../lib/supabase";
 import { Camera, Send, X, AlertCircle } from "lucide-react";
 import { cn } from "../lib/utils";
 import { useNotifications } from "../lib/NotificationsContext";
-import locationsData from "../../locations.json";
+// import locationsData from "../../locations.json";
 
 const ALERT_TYPES = ["Vol", "Perte", "Objet Trouvé", "Agression", "Accident", "Urgence Médicale", "Incendie", "Kidnapping", "Drame", "Autre"];
-const CITIES = Object.keys(locationsData) as (keyof typeof locationsData)[];
+// const CITIES = Object.keys(locationsData) as (keyof typeof locationsData)[];
+const CITIES = [];
 
 export default function Publish() {
   const navigate = useNavigate();

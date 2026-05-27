@@ -21,6 +21,11 @@ export default function Layout() {
   // Ne pas afficher tant que profileLoading === true (évite le flickering)
   const isAdmin = !profileLoading && profile?.role === 'admin';
 
+  // Hide navbar when viewing a specific discussion (pathname = /discussions/:id)
+  // Show navbar only when on /discussions (list view) or other pages
+  const isDiscussionDetailPage = location.pathname.match(/^\/discussions\/[^/]+$/);
+  const shouldHideNavbar = isDiscussionDetailPage;
+
   return (
     <div className="min-h-screen bg-[var(--bg-primary)] text-[var(--text-primary)] font-sans antialiased flex flex-col pt-3 sm:pt-4 md:pt-8 md:px-6 lg:px-8 pb-24 md:pb-8">
       {/* Top Header */}
@@ -80,7 +85,8 @@ export default function Layout() {
       {/* Guide FAB Component */}
       <GuideFAB />
 
-      {/* Mobile Bottom Navigation Bar */}
+      {/* Mobile Bottom Navigation Bar - Hidden on discussion detail pages */}
+      {!shouldHideNavbar && (
       <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-[var(--bg-primary)]/80 backdrop-blur-xl border-t border-[var(--border-color-strong)] pb-safe-area shadow-[0_-10px_40px_rgba(0,0,0,0.1)] z-40">
         <div className="flex justify-around items-center px-2 py-3">
           <Link to="/" className={cn("flex flex-col items-center gap-1 p-2 transition-transform active:scale-95", location.pathname === "/" ? "text-[var(--text-primary)]" : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)]")}>
@@ -195,6 +201,7 @@ export default function Layout() {
           </Link>
         </div>
       </nav>
+      )}
     </div>
   );
 }

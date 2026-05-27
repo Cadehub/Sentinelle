@@ -531,9 +531,9 @@ export default function ChatRoom() {
   }
 
   return (
-    <div className="flex flex-col h-[100dvh] w-full bg-[var(--bg-primary)] overflow-hidden">
-      {/* Header - fixed */}
-      <div className="shrink-0 p-4 border-b border-[var(--border-color)] bg-[var(--bg-primary)] sticky top-0 z-20 flex items-center gap-3">
+    <div className="h-screen w-full bg-[var(--bg-primary)] overflow-hidden relative">
+      {/* ZONE 1: Header FIXE en haut (ne défile jamais) */}
+      <div className="fixed top-0 left-0 right-0 z-50 bg-[var(--bg-primary)] border-b border-[var(--border-color)] p-4 flex items-center gap-3">
         <button
           onClick={() => navigate("/discussions")}
           className="flex items-center justify-center w-10 h-10 rounded-full hover:bg-[var(--bg-card)] transition-colors text-[var(--text-primary)]"
@@ -562,8 +562,8 @@ export default function ChatRoom() {
         )}
       </div>
 
-      {/* Messages - scrollable */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      {/* ZONE 2: Messages - centale avec scroll indépendant (ne touche jamais le header ni footer) */}
+      <div className="absolute top-0 bottom-0 left-0 right-0 overflow-y-auto pt-[72px] pb-[72px] p-4 space-y-4 bg-[var(--bg-primary)]">
         {messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full gap-4 text-[var(--text-secondary)]">
             <div className="text-5xl opacity-30">[ ]</div>
@@ -621,8 +621,8 @@ export default function ChatRoom() {
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Footer - fixed input */}
-      <div className="shrink-0 p-4 border-t border-[var(--border-color)] bg-[var(--bg-primary)] sticky bottom-0 z-20">
+      {/* ZONE 3: Footer input FIXE en bas (ne défile jamais) */}
+      <div className="fixed bottom-0 left-0 right-0 z-50 bg-[var(--bg-primary)] border-t border-[var(--border-color)] p-4">
         <form onSubmit={handleSendMessage} className="flex gap-2">
           <div className="flex-1 flex gap-2">
             <input

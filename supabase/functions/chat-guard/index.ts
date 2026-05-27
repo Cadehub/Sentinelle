@@ -38,6 +38,45 @@ serve(async (req) => {
       })
     }
 
+    // SECURITY INTERCEPTION: Check forbidden words before any other processing
+    try {
+      const supabaseUrl = Deno.env.get('SUPABASE_URL')
+      const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')
+
+      if (supabaseUrl && supabaseAnonKey) {
+        const supabaseClient = createClient(supabaseUrl, supabaseAnonKey)
+
+        // Fetch all forbidden words from the table
+        const { data: forbiddenWords, error: fetchError } = await supabaseClient
+          .from('forbidden_words')
+          .select('word')
+
+        if (fetchError) {
+          console.warn('[chat-guard] Error fetching forbidden words:', fetchError.message)
+        } else if (forbiddenWords && forbiddenWords.length > 0) {
+          // Convert message to lowercase for comparison
+          const lowerMessage = message.toLowerCase()
+
+          // Check if any forbidden word is contained in the message
+          for (const wordObj of forbiddenWords) {
+            const forbiddenWord = wordObj.word.toLowerCase()
+            if (lowerMessage.includes(forbiddenWord)) {
+              console.log('[chat-guard] Policy violation detected - forbidden word:', forbiddenWord)
+              
+              // Immediately return 403 with policy_violation error
+              return new Response(JSON.stringify({ success: false, error: 'policy_violation' }), {
+                status: 403,
+                headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' }
+              })
+            }
+          }
+        }
+      }
+    } catch (forbiddenWordsErr) {
+      console.warn('[chat-guard] Forbidden words check error:', forbiddenWordsErr)
+      // Don't block if the check fails - continue to normal flow
+    }
+
     // Optional authentication verification (logs but doesn't block)
     const authHeader = req.headers.get('authorization')
     let userId: string | null = null
