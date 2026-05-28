@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router'
-import { ArrowLeft, Shield, DollarSign, Lock, Link as LinkIcon, AlertCircle, CheckCircle2, Zap } from 'lucide-react'
+import { ArrowLeft, Shield, DollarSign, Lock, Link as LinkIcon, AlertCircle, CheckCircle2, XCircle, Zap } from 'lucide-react'
 
 export default function Rules() {
   const navigate = useNavigate()
@@ -74,10 +74,10 @@ export default function Rules() {
                 <div className="space-y-2 mt-3 text-sm">
                   <p className="text-[var(--text-secondary)]"><strong>Cela inclut :</strong></p>
                   <ul className="space-y-1 ml-4 text-[var(--text-secondary)]">
-                    <li>✗ Demandes de rançon ou de ranço​n déguisée</li>
-                    <li>✗ Partages de numéros Momo, Orange Money, Wave</li>
-                    <li>✗ Demandes d'avances de fonds ou de "cotisation"</li>
-                    <li>✗ Propositions de transactions financières de toute forme</li>
+                    <li className="flex items-start gap-2"><XCircle size={16} className="text-red-600 flex-shrink-0 mt-0.5" /> Demandes de rançon ou de ranço​n déguisée</li>
+                    <li className="flex items-start gap-2"><XCircle size={16} className="text-red-600 flex-shrink-0 mt-0.5" /> Partages de numéros Momo, Orange Money, Wave</li>
+                    <li className="flex items-start gap-2"><XCircle size={16} className="text-red-600 flex-shrink-0 mt-0.5" /> Demandes d'avances de fonds ou de "cotisation"</li>
+                    <li className="flex items-start gap-2"><XCircle size={16} className="text-red-600 flex-shrink-0 mt-0.5" /> Propositions de transactions financières de toute forme</li>
                   </ul>
                 </div>
               </div>
@@ -99,10 +99,10 @@ export default function Rules() {
                 <div className="space-y-2 mt-3 text-sm">
                   <p className="text-[var(--text-secondary)]"><strong>Données protégées :</strong></p>
                   <ul className="space-y-1 ml-4 text-[var(--text-secondary)]">
-                    <li>✗ Numéros de téléphone (avec ou sans pays)</li>
-                    <li>✗ Adresses e-mail et messagerie instantanée</li>
-                    <li>✗ Identifiants de réseaux sociaux (WhatsApp, Telegram, Facebook, Instagram, TikTok...)</li>
-                    <li>✗ Adresses physiques ou localisations précises</li>
+                    <li className="flex items-start gap-2"><XCircle size={16} className="text-orange-600 flex-shrink-0 mt-0.5" /> Numéros de téléphone (avec ou sans pays)</li>
+                    <li className="flex items-start gap-2"><XCircle size={16} className="text-orange-600 flex-shrink-0 mt-0.5" /> Adresses e-mail et messagerie instantanée</li>
+                    <li className="flex items-start gap-2"><XCircle size={16} className="text-orange-600 flex-shrink-0 mt-0.5" /> Identifiants de réseaux sociaux (WhatsApp, Telegram, Facebook, Instagram, TikTok...)</li>
+                    <li className="flex items-start gap-2"><XCircle size={16} className="text-orange-600 flex-shrink-0 mt-0.5" /> Adresses physiques ou localisations précises</li>
                   </ul>
                   <p className="text-[var(--text-secondary)] mt-3"><strong>À la place :</strong> Utilisez le système de chat 
                   sécurisé interne de Sentinelle pour échanger directement avec un autre utilisateur.</p>
@@ -126,9 +126,9 @@ export default function Rules() {
                 <div className="space-y-2 mt-3 text-sm">
                   <p className="text-[var(--text-secondary)]"><strong>Liens autorisés :</strong></p>
                   <ul className="space-y-1 ml-4 text-[var(--text-secondary)]">
-                    <li>✓ sentinelle.com</li>
-                    <li>✓ sentinelle.netlify.app</li>
-                    <li>✓ localhost (en développement)</li>
+                    <li className="flex items-start gap-2"><CheckCircle2 size={16} className="text-green-600 flex-shrink-0 mt-0.5" /> sentinelle.com</li>
+                    <li className="flex items-start gap-2"><CheckCircle2 size={16} className="text-green-600 flex-shrink-0 mt-0.5" /> sentinelle.netlify.app</li>
+                    <li className="flex items-start gap-2"><CheckCircle2 size={16} className="text-green-600 flex-shrink-0 mt-0.5" /> localhost (en développement)</li>
                   </ul>
                   <p className="text-[var(--text-secondary)] mt-3"><strong>Tous les autres liens seront bloqués :</strong> 
                   URLs externes, bit.ly, pastebin, etc. peuvent contenir des malwares ou servir à voler des données.</p>

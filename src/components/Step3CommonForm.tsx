@@ -1,0 +1,294 @@
+import { useState } from 'react'
+import { ChevronLeft, Send, Calendar, AlertCircle } from 'lucide-react'
+
+interface Step3CommonFormProps {
+  onBack: () => void
+  onSubmit: (data: Record<string, any>) => Promise<void>
+  isSubmitting: boolean
+}
+
+export default function Step3CommonForm({ onBack, onSubmit, isSubmitting }: Step3CommonFormProps) {
+  const [formData, setFormData] = useState({
+    location: '',
+    date: '',
+    description: '',
+    isUrgent: false,
+    reward: '',
+  })
+  const [showCalendar, setShowCalendar] = useState(false)
+  const [calendarMonth, setCalendarMonth] = useState(new Date())
+  const [validationErrors, setValidationErrors] = useState<string[]>([])
+
+  const handleChange = (field: string, value: any) => {
+    setFormData(prev => ({ ...prev, [field]: value }))
+    // Clear validation errors when user starts filling
+    if (validationErrors.length > 0) {
+      setValidationErrors([])
+    }
+  }
+
+  const validateForm = (): boolean => {
+    const errors: string[] = []
+
+    if (!formData.location?.trim()) {
+      errors.push('Le lieu est obligatoire')
+    }
+    if (!formData.date) {
+      errors.push('La date de l\'incident est obligatoire')
+    }
+    if (!formData.description?.trim()) {
+      errors.push('La description est obligatoire')
+    }
+
+    setValidationErrors(errors)
+    return errors.length === 0
+  }
+
+  // Get days in month
+  const getDaysInMonth = (date: Date) => {
+    return new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate()
+  }
+
+  // Get first day of month (0=Sunday, 1=Monday, etc.)
+  const getFirstDayOfMonth = (date: Date) => {
+    return new Date(date.getFullYear(), date.getMonth(), 1).getDay()
+  }
+
+  // Select date from calendar
+  const selectDate = (day: number) => {
+    const date = new Date(calendarMonth.getFullYear(), calendarMonth.getMonth(), day)
+    const isoString = date.toISOString().split('T')[0]
+    handleChange('date', isoString)
+    setShowCalendar(false)
+  }
+
+  // Get formatted date for display
+  const getFormattedDate = (dateStr: string) => {
+    if (!dateStr) return ''
+    const date = new Date(dateStr + 'T00:00:00')
+    return new Intl.DateTimeFormat('fr-FR', { 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric' 
+    }).format(date)
+  }
+
+  const handleSubmit = async () => {
+    if (!validateForm()) {
+      return
+    }
+
+    await onSubmit(formData)
+  }
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h2 className="text-2xl font-bold text-[var(--text-primary)] mb-2">
+          Détails communs
+        </h2>
+        <p className="text-[var(--text-secondary)]">
+          Complétez les informations supplémentaires (champs marqués * obligatoires)
+        </p>
+      </div>
+
+      {/* Validation Errors */}
+      {validationErrors.length > 0 && (
+        <div className="p-4 bg-red-50 border border-red-200 rounded-lg flex gap-3">
+          <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+          <div>
+            <h3 className="font-semibold text-red-900 mb-2">Veuillez compléter les champs suivants :</h3>
+            <ul className="space-y-1 text-sm text-red-800">
+              {validationErrors.map((error, idx) => (
+                <li key={idx} className="flex items-start gap-2">
+                  <span className="text-red-600 font-bold">•</span>
+                  {error}
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      )}
+
+      <div>
+        <label className="block text-sm font-semibold text-[var(--text-primary)] mb-2">
+          Lieu de l'incident *
+        </label>
+          <input
+            type="text"
+            value={formData.location}
+            onChange={(e) => handleChange('location', e.target.value)}
+            placeholder="Ex: Yaoundé, Douala, Rue de la Paix..."
+            className="w-full px-4 py-3 border border-[var(--border-color)] rounded-lg bg-[var(--bg-primary)] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-semibold text-[var(--text-primary)] mb-2">
+            Date de l'incident *
+          </label>
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => setShowCalendar(!showCalendar)}
+              className="w-full px-4 py-3 border border-[var(--border-color)] rounded-lg bg-[var(--bg-primary)] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-blue-500 flex items-center gap-2 justify-between hover:border-[var(--text-primary)] transition-colors"
+            >
+              <span className={formData.date ? 'text-[var(--text-primary)]' : 'text-[var(--text-tertiary)]'}>
+                {formData.date ? getFormattedDate(formData.date) : 'Sélectionner une date'}
+              </span>
+              <Calendar size={20} className="text-[var(--text-secondary)]" />
+            </button>
+
+            {/* Calendar Popup */}
+            {showCalendar && (
+              <div className="absolute top-full left-0 mt-2 bg-[var(--bg-card)] border border-[var(--border-color)] rounded-lg shadow-lg p-4 z-50 w-72">
+                {/* Calendar Header */}
+                <div className="flex items-center justify-between mb-4">
+                  <button
+                    type="button"
+                    onClick={() => setCalendarMonth(new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() - 1))}
+                    className="p-2 hover:bg-[var(--bg-primary)] rounded transition"
+                  >
+                    ‹
+                  </button>
+                  <div className="text-sm font-semibold text-[var(--text-primary)]">
+                    {new Intl.DateTimeFormat('fr-FR', { month: 'long', year: 'numeric' }).format(calendarMonth)}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setCalendarMonth(new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() + 1))}
+                    className="p-2 hover:bg-[var(--bg-primary)] rounded transition"
+                  >
+                    ›
+                  </button>
+                </div>
+
+                {/* Weekday Headers */}
+                <div className="grid grid-cols-7 gap-1 mb-2">
+                  {['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'].map(day => (
+                    <div key={day} className="text-center text-xs font-semibold text-[var(--text-secondary)] py-2">
+                      {day}
+                    </div>
+                  ))}
+                </div>
+
+                {/* Calendar Days */}
+                <div className="grid grid-cols-7 gap-1">
+                  {Array.from({ length: getFirstDayOfMonth(calendarMonth) }).map((_, i) => (
+                    <div key={`empty-${i}`} />
+                  ))}
+                  {Array.from({ length: getDaysInMonth(calendarMonth) }).map((_, i) => {
+                    const day = i + 1
+                    const dateStr = `${calendarMonth.getFullYear()}-${String(calendarMonth.getMonth() + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`
+                    const isSelected = formData.date === dateStr
+                    const isToday = dateStr === new Date().toISOString().split('T')[0]
+                    
+                    return (
+                      <button
+                        key={day}
+                        type="button"
+                        onClick={() => selectDate(day)}
+                        className={`py-2 rounded text-sm font-medium transition-all ${
+                          isSelected
+                            ? 'bg-blue-600 text-white'
+                            : isToday
+                            ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 border border-blue-300 dark:border-blue-700'
+                            : 'hover:bg-[var(--bg-primary)] text-[var(--text-primary)]'
+                        }`}
+                      >
+                        {day}
+                      </button>
+                    )
+                  })}
+                </div>
+
+                {/* Close Button */}
+                <button
+                  type="button"
+                  onClick={() => setShowCalendar(false)}
+                  className="w-full mt-4 py-2 text-sm text-[var(--text-secondary)] hover:bg-[var(--bg-primary)] rounded transition"
+                >
+                  Fermer
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div>
+          <label className="block text-sm font-semibold text-[var(--text-primary)] mb-2">
+            Description détaillée *
+          </label>
+          <textarea
+            value={formData.description}
+            onChange={(e) => handleChange('description', e.target.value)}
+            placeholder="Décrivez ce qui s'est passé, où, comment, les circonstances, etc."
+            rows={5}
+            className="w-full px-4 py-3 border border-[var(--border-color)] rounded-lg bg-[var(--bg-primary)] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
+
+        <div className="flex items-center gap-3 p-4 bg-[var(--bg-card)] border border-[var(--border-color)] rounded-lg">
+          <input
+            type="checkbox"
+            id="isUrgent"
+            checked={formData.isUrgent}
+            onChange={(e) => handleChange('isUrgent', e.target.checked)}
+            className="w-5 h-5 text-red-600 rounded"
+          />
+          <label htmlFor="isUrgent" className="font-semibold text-[var(--text-primary)] cursor-pointer">
+            Marquer comme urgent
+          </label>
+        </div>
+
+        <div>
+          <label className="block text-sm font-semibold text-[var(--text-primary)] mb-2">
+            Récompense (optionnel)
+          </label>
+          <div className="flex items-center gap-2">
+            <input
+              type="number"
+              value={formData.reward}
+              onChange={(e) => handleChange('reward', e.target.value)}
+              placeholder="0"
+              min="0"
+              className="flex-1 px-4 py-3 border border-[var(--border-color)] rounded-lg bg-[var(--bg-primary)] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            <span className="text-[var(--text-primary)] font-medium">XAF</span>
+          </div>
+          <p className="text-xs text-[var(--text-tertiary)] mt-1">
+            Offrez une récompense pour augmenter vos chances
+          </p>
+        </div>
+
+      <div className="flex gap-3">
+        <button
+          onClick={onBack}
+          disabled={isSubmitting}
+          className="flex-1 py-3 border border-[var(--border-color)] rounded-lg font-bold text-[var(--text-primary)] hover:bg-[var(--bg-card)] disabled:opacity-50 transition flex items-center justify-center gap-2"
+        >
+          <ChevronLeft className="w-4 h-4" />
+          Retour
+        </button>
+
+        <button
+          onClick={handleSubmit}
+          disabled={isSubmitting}
+          className="flex-1 py-3 bg-green-600 hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg font-bold flex items-center justify-center gap-2 transition"
+        >
+          {isSubmitting ? (
+            <>
+              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              Envoi...
+            </>
+          ) : (
+            <>
+              <Send className="w-4 h-4" />
+              Signaler
+            </>
+          )}
+        </button>
+      </div>
+    </div>
+  )
+}

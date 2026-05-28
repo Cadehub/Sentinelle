@@ -6,6 +6,7 @@ interface AlertForReminder {
   id: string
   title: string
   created_at: string
+  updated_at: string | null
 }
 
 export function useAlertReminder(userId: string | undefined) {
@@ -20,7 +21,7 @@ export function useAlertReminder(userId: string | undefined) {
     try {
       const { data, error } = await supabase
         .from('alerts')
-        .select('id, title, created_at')
+        .select('id, title, created_at, updated_at')
         .eq('user_id', userId)
         .eq('status', 'actif')
         .order('created_at', { ascending: true })
@@ -35,11 +36,12 @@ export function useAlertReminder(userId: string | undefined) {
         return
       }
 
-      // Find first alert that's older than 6 days
+      // Find first alert that's older than 6 days (check updated_at, fallback to created_at)
       const now = new Date()
       const alertNeedingReminder = data.find((alert) => {
-        const createdAt = new Date(alert.created_at)
-        const daysOld = differenceInDays(now, createdAt)
+        // Use updated_at if available, otherwise fallback to created_at
+        const referenceDate = alert.updated_at ? new Date(alert.updated_at) : new Date(alert.created_at)
+        const daysOld = differenceInDays(now, referenceDate)
         return daysOld > 6
       })
 
@@ -78,7 +80,9 @@ export function useAlertReminder(userId: string | undefined) {
       }
 
       console.log('[AlertReminder] Alert extended:', alertId)
-      // Refresh reminders after extending
+      // Immediately clear the reminder modal to force it to disappear
+      setReminderAlert(null)
+      // Refresh reminders to detect any other alerts that need reminders
       await checkForReminders()
     },
     [checkForReminders]
@@ -101,7 +105,9 @@ export function useAlertReminder(userId: string | undefined) {
       }
 
       console.log('[AlertReminder] Alert resolved:', alertId)
-      // Refresh reminders after resolving
+      // Immediately clear the reminder modal to force it to disappear
+      setReminderAlert(null)
+      // Refresh reminders to detect any other alerts that need reminders
       await checkForReminders()
     },
     [checkForReminders]
