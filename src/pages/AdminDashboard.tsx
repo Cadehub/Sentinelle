@@ -334,11 +334,7 @@ export default function AdminDashboard() {
     setIsAddingWord(true)
     try {
       const { error } = await supabase.from('forbidden_words').insert({
-        word: newWord.trim().toLowerCase(),
-        category: newWordCategory,
-        reason: newWordReason.trim() || null,
-        is_active: true,
-        created_by: user?.id
+        word: newWord.trim().toLowerCase()
       })
 
       if (error) {
