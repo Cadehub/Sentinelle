@@ -102,18 +102,23 @@ export default function Step2UnifiedForm({ onBack, onSubmit, isSubmitting, submi
   }
 
   const handleSelectAddress = (suggestion: any) => {
+    const lat = parseFloat(suggestion.lat)
+    const lon = parseFloat(suggestion.lon)
+    
     setSearchQuery(suggestion.display_name)
     setFormData(prev => ({
       ...prev,
       location: suggestion.display_name,
+      latitude: lat,
+      longitude: lon,
     }))
     setSuggestions([])
     setShowSuggestions(false)
-    setMapCenter([parseFloat(suggestion.lat), parseFloat(suggestion.lon)])
+    setMapCenter([lat, lon])
   }
 
   const canProceed = () => {
-    return getResolvedLocation().length > 0 && formData.latitude !== null && formData.longitude !== null && formData.date && formData.description?.trim()
+    return getResolvedLocation().length > 0 && formData.date && formData.description?.trim()
   }
 
   const getResolvedLocation = () => {

@@ -31,7 +31,7 @@ export function useNotificationsWithOneSignal() {
         // Load OneSignal script
         const script = document.createElement('script');
         script.async = true;
-        script.src = 'https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.js';
+        script.src = 'https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js';
         
         script.onload = () => {
           window.OneSignal = window.OneSignal || [];
@@ -75,16 +75,16 @@ export function useNotificationsWithOneSignal() {
     const fetchUnreadCount = async () => {
       try {
         const { data, error } = await supabase
-          .from('chat_messages')
-          .select('id', { count: 'exact' })
-          .eq('receiver_id', user.id)
-          .eq('is_read', false);
+          .from('chat_read_status')
+          .select('unread_count')
+          .eq('user_id', user.id);
 
         if (error) {
           console.error('Error fetching unread count:', error);
           setUnreadCount(0);
         } else {
-          setUnreadCount(data?.length || 0);
+          const total = data?.reduce((sum: number, item: any) => sum + (item.unread_count || 0), 0) || 0;
+          setUnreadCount(total);
         }
       } catch (err) {
         console.error('Failed to fetch unread count:', err);
@@ -96,7 +96,7 @@ export function useNotificationsWithOneSignal() {
 
     fetchUnreadCount();
 
-    // 2. Subscribe to real-time changes on chat_messages (Supabase Realtime)
+    // 2. Subscribe to real-time changes on chat_read_status
     const channel = supabase
       .channel(`notifications-${user.id}`)
       .on(
@@ -104,21 +104,20 @@ export function useNotificationsWithOneSignal() {
         {
           event: 'INSERT',
           schema: 'public',
-          table: 'chat_messages',
-          filter: `receiver_id=eq.${user.id}`
+          table: 'chat_read_status',
+          filter: `user_id=eq.${user.id}`
         },
         (payload) => {
-          // Check if the new message is unread
-          const newMessage = payload.new as any;
-          if (newMessage.is_read === false) {
-            setUnreadCount((prev) => prev + 1);
+          // New read status created (new messages in a room)
+          const newStatus = payload.new as any;
+          if (newStatus.unread_count && newStatus.unread_count > 0) {
+            setUnreadCount((prev) => prev + newStatus.unread_count);
 
             // Optional: Send to OneSignal for native notification
             if (window.OneSignal && oneSignalReady) {
               try {
                 window.OneSignal.push(() => {
-                  // Trigger custom event or notification
-                  console.log('New unread message from Supabase Realtime');
+                  console.log('New unread messages from Supabase Realtime');
                 });
               } catch (err) {
                 console.error('OneSignal notification error:', err);
@@ -132,16 +131,17 @@ export function useNotificationsWithOneSignal() {
         {
           event: 'UPDATE',
           schema: 'public',
-          table: 'chat_messages',
-          filter: `receiver_id=eq.${user.id}`
+          table: 'chat_read_status',
+          filter: `user_id=eq.${user.id}`
         },
         (payload) => {
-          // When a message is marked as read
-          const updatedMessage = payload.new as any;
-          const oldMessage = payload.old as any;
+          // When unread_count changes
+          const oldStatus = payload.old as any;
+          const newStatus = payload.new as any;
+          const diff = (newStatus.unread_count || 0) - (oldStatus.unread_count || 0);
           
-          if (oldMessage.is_read === false && updatedMessage.is_read === true) {
-            setUnreadCount((prev) => Math.max(0, prev - 1));
+          if (diff !== 0) {
+            setUnreadCount((prev) => Math.max(0, prev + diff));
           }
         }
       )
