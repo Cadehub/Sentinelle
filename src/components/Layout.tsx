@@ -3,10 +3,12 @@ import { useTheme } from "./ThemeProvider";
 import { useAuth } from "../lib/AuthContext";
 import { useProfile } from "../lib/useProfile";
 import { useNotifications } from "../lib/NotificationsContext";
+import { useNotificationsWithOneSignal } from "../lib/useNotificationsWithOneSignal";
 import { LogOut, User, Bell, Home, MessageCircle, Settings as SettingsIcon, PlusCircle, X, Sun, Moon, Trash2, Shield } from "lucide-react";
 import { useState } from "react";
 import { cn } from "../lib/utils";
 import GuideFAB from "./GuideFAB";
+import IOSInstallPrompt from "./IOSInstallPrompt";
 
 export default function Layout() {
   const { theme, setTheme } = useTheme();
@@ -14,6 +16,7 @@ export default function Layout() {
   const { profile, loading: profileLoading } = useProfile(); // ← Récupère aussi loading
   const navigate = useNavigate();
   const { notifications, unreadCount, markAsRead, deleteNotification, clearNotifications } = useNotifications();
+  const { unreadCount: chatUnreadCount, oneSignalReady } = useNotificationsWithOneSignal();
   const [showNotifs, setShowNotifs] = useState(false);
   const location = useLocation();
   
@@ -56,7 +59,14 @@ export default function Layout() {
             {/* Desktop Navigation Links */}
             <div className="hidden md:flex flex-wrap items-center gap-6">
               <Link to="/" className="hover:text-[var(--text-primary)] transition-all active:scale-95">Tableau de Bord</Link>
-              <Link to="/discussions" className="hover:text-[var(--text-primary)] transition-all active:scale-95">Discussions</Link>
+              <Link to="/discussions" className="relative hover:text-[var(--text-primary)] transition-all active:scale-95 flex items-center gap-2 group">
+                Discussions
+                {chatUnreadCount > 0 && (
+                  <span className="absolute -top-3 -right-4 w-5 h-5 bg-red-500 rounded-full text-white text-[10px] font-bold flex items-center justify-center shadow-lg shadow-red-500/50 animate-pulse">
+                    {chatUnreadCount > 99 ? '99+' : chatUnreadCount}
+                  </span>
+                )}
+              </Link>
               <Link to="/settings" className="hover:text-[var(--text-primary)] transition-all active:scale-95">Préférences</Link>
               <Link to="/publish" className="hover:text-[var(--text-primary)] transition-all text-[var(--text-primary)] border-b border-[var(--text-primary)] pb-1 active:scale-95">Signaler</Link>
               {isAdmin && (
@@ -82,6 +92,9 @@ export default function Layout() {
         <Outlet />
       </main>
 
+      {/* iOS Install Prompt */}
+      <IOSInstallPrompt />
+
       {/* Guide FAB Component */}
       <GuideFAB />
 
@@ -93,8 +106,15 @@ export default function Layout() {
             <Home size={22} className={cn(location.pathname === "/" && "fill-current opacity-20")} />
             <span className="text-[9px] font-bold uppercase tracking-wider">Accueil</span>
           </Link>
-          <Link to="/discussions" className={cn("flex flex-col items-center gap-1 p-2 transition-transform active:scale-95", location.pathname === "/discussions" ? "text-[var(--text-primary)]" : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)]")}>
-            <MessageCircle size={22} className={cn(location.pathname === "/discussions" && "fill-current opacity-20")} />
+          <Link to="/discussions" className={cn("flex flex-col items-center gap-1 p-2 transition-transform active:scale-95 relative", location.pathname === "/discussions" ? "text-[var(--text-primary)]" : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)]")}>
+            <div className="relative">
+              <MessageCircle size={22} className={cn(location.pathname === "/discussions" && "fill-current opacity-20")} />
+              {chatUnreadCount > 0 && (
+                <span className="absolute -top-2 -right-2 w-4 h-4 bg-red-500 rounded-full text-white text-[8px] font-bold flex items-center justify-center shadow-lg shadow-red-500/50 animate-pulse">
+                  {chatUnreadCount > 9 ? '9+' : chatUnreadCount}
+                </span>
+              )}
+            </div>
             <span className="text-[9px] font-bold uppercase tracking-wider">Discussions</span>
           </Link>
           <Link to="/publish" className="flex flex-col items-center gap-1 p-2 -translate-y-4 group transition-transform active:scale-95 border-b-0">
@@ -112,8 +132,8 @@ export default function Layout() {
                 <div className="relative">
                   <Bell size={22} />
                   {unreadCount > 0 && (
-                    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center animate-pulse">
-                      {unreadCount}
+                    <span className="absolute -top-2 -right-2 w-4 h-4 bg-red-500 rounded-full text-white text-[8px] font-bold flex items-center justify-center shadow-lg shadow-red-500/50 animate-pulse">
+                      {unreadCount > 9 ? '9+' : unreadCount}
                     </span>
                   )}
                 </div>

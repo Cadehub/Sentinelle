@@ -16,6 +16,14 @@ interface SubTypeOption {
   description: string
 }
 
+const CATEGORY_MAPPING: Record<string, string[]> = {
+  "Documents": ["Carte Nationale d'Identité (CNI)", "Passeport", "Permis de conduire", "Acte de naissance", "Diplôme / Attestation", "Carte d'étudiant"],
+  "Électronique": ["Téléphone portable / Smartphone", "Ordinateur portable", "Tablette", "Écouteurs / Casque", "Powerbank / Chargeur"],
+  "Moyens de transport": ["Clé de voiture", "Clé de moto", "Documents de bord (Carte grise, Assurance)", "Vélo"],
+  "Effets personnels": ["Portefeuille", "Sac à main / Sac à dos", "Trousseau de clés (Maison)", "Bijoux / Montre", "Lunettes"],
+  "Argent & Cartes": ["Numéraire / Cash", "Carte bancaire (Visa, Mastercard)", "Carte de retrait locale"],
+}
+
 const subTypes: Record<MainType, SubTypeOption[]> = {
   lost: [
     { id: 'document', label: 'Document', icon: <FileText className="w-8 h-8" />, description: 'CNI, Passeport, Permis...' },
@@ -37,6 +45,10 @@ export default function Step1TypeSelection({ onNext }: Step1TypeSelectionProps) 
   const [selectedMain, setSelectedMain] = useState<MainType | null>(null)
   const [selectedSub, setSelectedSub] = useState<SubType | null>(null)
   const [showError, setShowError] = useState(false)
+
+  const canProceed = () => {
+    return Boolean(selectedMain && selectedSub)
+  }
 
   const handleNext = () => {
     if (selectedMain && selectedSub) {
@@ -132,7 +144,9 @@ export default function Step1TypeSelection({ onNext }: Step1TypeSelectionProps) 
         {subTypes[selectedMain].map((subType) => (
           <button
             key={subType.id}
-            onClick={() => setSelectedSub(subType.id)}
+            onClick={() => {
+              setSelectedSub(subType.id)
+            }}
             className={cn(
               'group p-4 border-2 rounded-xl transition-all active:scale-95 duration-200',
               selectedSub === subType.id
@@ -152,14 +166,15 @@ export default function Step1TypeSelection({ onNext }: Step1TypeSelectionProps) 
         ))}
       </div>
 
-      <button
-        onClick={handleNext}
-        disabled={!selectedSub}
-        className="w-full py-3 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg font-bold flex items-center justify-center gap-2 transition"
-      >
-        Continuer
-        <ChevronRight className="w-4 h-4" />
-      </button>
+      {canProceed() && (
+        <button
+          onClick={handleNext}
+          className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold flex items-center justify-center gap-2 transition"
+        >
+          Continuer
+          <ChevronRight className="w-4 h-4" />
+        </button>
+      )}
     </div>
   )
 }

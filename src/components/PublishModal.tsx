@@ -1,10 +1,17 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { X, AlertCircle, CheckCircle2 } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../lib/AuthContext'
 import Step1TypeSelection from './Step1TypeSelection'
-import Step2DetailsForm from './Step2DetailsForm'
-import Step3CommonForm from './Step3CommonForm'
+import Step2UnifiedForm from './Step2UnifiedForm'
+
+const CATEGORY_MAPPING: Record<string, string[]> = {
+  "Documents": ["Carte Nationale d'Identité (CNI)", "Passeport", "Permis de conduire", "Acte de naissance", "Diplôme / Attestation", "Carte d'étudiant"],
+  "Électronique": ["Téléphone portable / Smartphone", "Ordinateur portable", "Tablette", "Écouteurs / Casque", "Powerbank / Chargeur"],
+  "Moyens de transport": ["Clé de voiture", "Clé de moto", "Documents de bord (Carte grise, Assurance)", "Vélo"],
+  "Effets personnels": ["Portefeuille", "Sac à main / Sac à dos", "Trousseau de clés (Maison)", "Bijoux / Montre", "Lunettes"],
+  "Argent & Cartes": ["Numéraire / Cash", "Carte bancaire (Visa, Mastercard)", "Carte de retrait locale"],
+}
 
 type MainType = 'lost' | 'found'
 type SubType = 'document' | 'object' | 'person' | 'vehicle' | 'animal'
@@ -17,7 +24,7 @@ interface PublishModalProps {
 
 export default function PublishModal({ isOpen, onClose, onSuccess }: PublishModalProps) {
   const { user } = useAuth()
-  const [currentStep, setCurrentStep] = useState<1 | 2 | 3>(1)
+  const [currentStep, setCurrentStep] = useState<1 | 2>(1)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
@@ -28,6 +35,8 @@ export default function PublishModal({ isOpen, onClose, onSuccess }: PublishModa
     details: {} as Record<string, any>,
     common: {
       location: '',
+      latitude: null as number | null,
+      longitude: null as number | null,
       date: '',
       description: '',
       isUrgent: false,
@@ -35,6 +44,22 @@ export default function PublishModal({ isOpen, onClose, onSuccess }: PublishModa
     },
     images: [] as File[],
   })
+  const modalContentRef = useRef<HTMLDivElement | null>(null)
+
+  const canProceed = () => {
+    if (currentStep === 1) {
+      return Boolean(alertData.mainType && alertData.subType)
+    }
+    return true
+  }
+
+  useEffect(() => {
+    if (modalContentRef.current) {
+      modalContentRef.current.scrollTo({ top: 0, behavior: 'smooth' })
+    } else {
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    }
+  }, [currentStep])
 
   if (!isOpen) return null
 
@@ -47,163 +72,197 @@ export default function PublishModal({ isOpen, onClose, onSuccess }: PublishModa
     setCurrentStep(2)
   }
 
-  const handleStep2Next = (details: Record<string, any>, images: File[]) => {
-    setAlertData(prev => ({
-      ...prev,
-      details,
-      images,
-    }))
-    setCurrentStep(3)
-  }
-
-  const handleStep3Submit = async (commonData: Record<string, any>) => {
+  const handleStep2Submit = async (formData: Record<string, any>) => {
     try {
       setError(null)
       setIsSubmitting(true)
 
       if (!user) {
-        throw new Error('Vous devez être connecté pour signaler une alerte')
+        throw new Error('User not authenticated')
       }
 
-      // Step 1: Insert into alerts table
-      const alertTitle = getAlertTitle(alertData.subType, alertData.details)
-      const imageUrls = alertData.images.length > 0 ? await uploadAlertImages(alertData.images) : []
+      const duration = Number(formData.reward) || 7
+      const expiresAt = new Date(Date.now() + duration * 24 * 60 * 60 * 1000).toISOString()
 
-      const { data: insertedAlert, error: alertError } = await supabase
+      // Upload images
+      let imageUrl = ''
+      let imagesArray: string[] = []
+
+      if (formData.images && formData.images.length > 0) {
+        try {
+          const uploadedUrls = await uploadAlertImages(formData.images)
+          if (uploadedUrls && uploadedUrls.length > 0) {
+            imageUrl = uploadedUrls[0]
+            imagesArray = uploadedUrls
+          }
+        } catch (imgError) {
+          console.warn('Image upload warning:', imgError)
+        }
+      }
+
+      // Insert alert
+      const { data: alertInsert, error: alertError } = await supabase
         .from('alerts')
         .insert({
-          title: alertTitle,
+          title: alertData.mainType,
+          description: formData.description,
           type: alertData.mainType,
-          location: commonData.location,
-          description: commonData.description,
+          latitude: formData.latitude,
+          longitude: formData.longitude,
+          city: formData.location.split(',')[0] || 'Non spécifié',
+          neighborhood: formData.location.split(',').slice(1).join(',').trim() || 'Non spécifié',
+          contact: (formData.details && (formData.details.contact || (alertData.common as any).contact)) || user.email || 'Chat Interne',
+          duration_days: duration,
+          expires_at: expiresAt,
+          image_url: imageUrl,
+          images: imagesArray,
           user_id: user.id,
-          is_urgent: commonData.isUrgent,
-          reward_offered: commonData.reward ? parseInt(commonData.reward) : null,
-          images: imageUrls,
           status: 'active',
         })
-        .select('id')
-        .single()
+        .select()
 
-      if (alertError) throw alertError
-      if (!insertedAlert) throw new Error('Impossible de créer l\'alerte')
+      if (alertError) {
+        throw alertError
+      }
 
-      const alertId = insertedAlert.id
+      const alertId = alertInsert?.[0]?.id
 
-      // Step 2: Insert into appropriate details table based on type
-      await insertDetailsRecord(alertId, alertData.subType, alertData.details, commonData.date)
+      if (!alertId) {
+        throw new Error('Alert insertion failed')
+      }
 
-      setSuccessMessage('Alerte signalée avec succès!')
+      // Insert detail records based on type
+      if (formData.details) {
+        const details = formData.details
+        switch (alertData.subType) {
+          case 'document':
+            if (details.category || details.full_name) {
+              await supabase.from('details_documents').insert({
+                alert_id: alertId,
+                document_category: details.category,
+                document_name_on_doc: details.full_name,
+                document_number: details.document_number,
+              })
+            }
+            break
+
+          case 'person':
+            if (details.full_name) {
+              await supabase.from('details_missing_persons').insert({
+                alert_id: alertId,
+                person_full_name: details.full_name,
+                person_age: details.age ? parseInt(details.age) : null,
+                person_gender: details.gender,
+                person_distinctive_signs: details.distinctive_marks,
+                person_clothing: details.clothing,
+              })
+            }
+            break
+
+          case 'vehicle':
+            if (details.brand) {
+              await supabase.from('details_vehicles').insert({
+                alert_id: alertId,
+                vehicle_registration_plate: details.registration_number,
+                vehicle_color: details.color,
+                vehicle_model: details.model,
+                vehicle_brand: details.brand,
+              })
+            }
+            break
+
+          case 'animal':
+            if (details.species) {
+              await supabase.from('details_animals').insert({
+                alert_id: alertId,
+                animal_species_race: details.species,
+                animal_color: details.color,
+              })
+            }
+            break
+
+          case 'object':
+            if (details.category) {
+              await supabase.from('details_objects').insert({
+                alert_id: alertId,
+                object_brand: details.brand,
+                object_color: details.color,
+              })
+            }
+            break
+        }
+      }
+
+      // Create associated chat room
+      const { data: chatInsert } = await supabase
+        .from('discussions')
+        .insert({
+          alert_id: alertId,
+          title: `Alerte ${alertData.mainType}`,
+          created_by: user.id,
+        })
+        .select()
+
+      setSuccessMessage(`Alerte publiée avec succès !`)
+      setAlertData(prev => ({
+        ...prev,
+        mainType: null,
+        subType: null,
+        details: {},
+        common: {
+          location: '',
+          latitude: null,
+          longitude: null,
+          date: '',
+          description: '',
+          isUrgent: false,
+          reward: '',
+        },
+        images: [],
+      }))
+
       setTimeout(() => {
-        resetModal()
+        setCurrentStep(1)
         onClose()
         onSuccess?.()
-      }, 2000)
-    } catch (err) {
-      console.error('Error submitting alert:', err)
-      setError(err instanceof Error ? err.message : 'Erreur lors de la création de l\'alerte')
-    } finally {
+      }, 1500)
+    } catch (err: any) {
+      console.error('Error publishing alert:', err)
+      setError(err.message || 'Une erreur est survenue lors de la publication')
       setIsSubmitting(false)
     }
   }
 
-  const uploadAlertImages = async (images: File[]) => {
-    const urls: string[] = []
+  const uploadAlertImages = async (files: File[]): Promise<string[]> => {
+    const uploadedUrls: string[] = [];
 
-    for (const file of images) {
-      const fileName = `${Date.now()}-${Math.random().toString(36).slice(2, 10)}-${file.name}`
-      const filePath = `alert-media/${fileName}`
+    for (const file of files) {
+      // 1. Conversion en Base64 complète (avec le préfixe data:image/jpeg;base64,...)
+      const base64Complete = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = error => reject(error);
+        reader.readAsDataURL(file);
+      });
 
-      const { data: uploadData, error: uploadError } = await supabase.storage
-        .from('alert-media')
-        .upload(filePath, file)
+      // 2. Envoi simultané des deux formats dans le JSON
+      const { data, error } = await supabase.functions.invoke('upload-alert-images', {
+        body: {
+          image: base64Complete.split(',')[1], // Base64 pur
+          base64: base64Complete,              // Format DataURI complet
+          name: `${Date.now()}-${Math.random().toString(36).substring(7)}.jpg`,
+        },
+      });
 
-      if (uploadError) {
-        throw uploadError
+      if (error) throw new Error(`Erreur Edge Function: ${error.message}`);
+      if (data && (data as any).url) {
+        uploadedUrls.push((data as any).url);
+      } else {
+        throw new Error("L'Edge Function n'a pas renvoyé de champ 'url' valide.");
       }
-
-      const { data: publicUrlData, error: publicUrlError } = supabase.storage
-        .from('alert-media')
-        .getPublicUrl(filePath)
-
-      if (publicUrlError) {
-        throw publicUrlError
-      }
-
-      urls.push(publicUrlData.publicUrl)
     }
 
-    return urls
-  }
-
-  const insertDetailsRecord = async (alertId: string, subType: SubType, details: Record<string, any>, incidentDate: string) => {
-    let table = ''
-    let insertData: Record<string, any> = { alert_id: alertId }
-
-    switch (subType) {
-      case 'document':
-        table = 'details_documents'
-        insertData = {
-          alert_id: alertId,
-          category: details.category,
-          full_name: details.full_name,
-          document_number: details.document_number,
-          incident_date: incidentDate,
-        }
-        break
-      case 'person':
-        table = 'details_persons'
-        insertData = {
-          alert_id: alertId,
-          full_name: details.full_name,
-          age: details.age ? parseInt(details.age) : null,
-          gender: details.gender,
-          distinctive_marks: details.distinctive_marks,
-          clothing: details.clothing,
-          disappearance_date: incidentDate,
-        }
-        break
-      case 'object':
-        table = 'details_objects'
-        insertData = {
-          alert_id: alertId,
-          brand: details.brand,
-          color: details.color,
-          description: details.description,
-          loss_date: incidentDate,
-        }
-        break
-      case 'animal':
-        table = 'details_animals'
-        insertData = {
-          alert_id: alertId,
-          species: details.species,
-          breed: details.breed,
-          color: details.color,
-          distinctive_marks: details.distinctive_marks,
-          loss_date: incidentDate,
-        }
-        break
-      case 'vehicle':
-        table = 'details_vehicles'
-        insertData = {
-          alert_id: alertId,
-          registration_number: details.registration_number,
-          brand: details.brand,
-          model: details.model,
-          color: details.color,
-          loss_date: incidentDate,
-        }
-        break
-    }
-
-    if (!table) throw new Error('Type d\'alerte invalide')
-
-    const { error: detailsError } = await supabase
-      .from(table)
-      .insert(insertData)
-
-    if (detailsError) throw detailsError
+    return uploadedUrls;
   }
 
   const getAlertTitle = (subType: SubType | null, details: Record<string, any>): string => {
@@ -227,7 +286,7 @@ export default function PublishModal({ isOpen, onClose, onSuccess }: PublishModa
 
   const handleBack = () => {
     if (currentStep > 1) {
-      setCurrentStep((prev) => (prev - 1) as 1 | 2 | 3)
+      setCurrentStep((prev) => (prev - 1) as 1 | 2)
     }
   }
 
@@ -239,6 +298,8 @@ export default function PublishModal({ isOpen, onClose, onSuccess }: PublishModa
       details: {},
       common: {
         location: '',
+        latitude: null,
+        longitude: null,
         date: '',
         description: '',
         isUrgent: false,
@@ -257,7 +318,7 @@ export default function PublishModal({ isOpen, onClose, onSuccess }: PublishModa
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[9999] p-4">
-      <div className="bg-[var(--bg-primary)] rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+      <div ref={modalContentRef} className="bg-[var(--bg-primary)] rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         {/* Header */}
         <div className="sticky top-0 bg-[var(--bg-primary)] border-b border-[var(--border-color)] px-6 py-4 flex items-center justify-between">
           <div className="flex-1">
@@ -265,7 +326,7 @@ export default function PublishModal({ isOpen, onClose, onSuccess }: PublishModa
               Signaler une alerte
             </h1>
             <p className="text-sm text-[var(--text-secondary)] mt-1">
-              Étape {currentStep} sur 3
+              Étape {currentStep} sur 2
             </p>
           </div>
           <button
@@ -280,7 +341,7 @@ export default function PublishModal({ isOpen, onClose, onSuccess }: PublishModa
         <div className="h-1 bg-[var(--bg-card)] flex">
           <div
             className="bg-blue-600 transition-all duration-300"
-            style={{ width: `${(currentStep / 3) * 100}%` }}
+            style={{ width: `${(currentStep / 2) * 100}%` }}
           />
         </div>
 
@@ -309,27 +370,24 @@ export default function PublishModal({ isOpen, onClose, onSuccess }: PublishModa
           )}
 
           {/* Step components */}
-          {currentStep === 1 && (
-            <Step1TypeSelection
-              onNext={handleStep1Next}
-            />
-          )}
-
-          {currentStep === 2 && alertData.subType && (
-            <Step2DetailsForm
-              subType={alertData.subType}
-              onNext={handleStep2Next}
-              onBack={handleBack}
-            />
-          )}
-
-          {currentStep === 3 && (
-            <Step3CommonForm
-              onBack={handleBack}
-              onSubmit={handleStep3Submit}
-              isSubmitting={isSubmitting}
-            />
-          )}
+          {(() => {
+            switch (currentStep) {
+              case 1:
+                return <Step1TypeSelection onNext={handleStep1Next} />
+              case 2:
+                return (
+                  <Step2UnifiedForm
+                    subType={alertData.subType!}
+                    onBack={handleBack}
+                    onSubmit={handleStep2Submit}
+                    isSubmitting={isSubmitting}
+                    submitLabel="Publier"
+                  />
+                )
+              default:
+                return null
+            }
+          })()}
         </div>
 
 

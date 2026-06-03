@@ -4,11 +4,13 @@ import type { SubType } from './Step1TypeSelection'
 
 interface Step2DetailsFormProps {
   subType: SubType
-  onNext: (details: Record<string, any>, images: File[]) => void
+  onSubmit: (details: Record<string, any>, images: File[]) => void
   onBack: () => void
+  submitLabel?: string
+  isSubmitting?: boolean
 }
 
-export default function Step2DetailsForm({ subType, onNext, onBack }: Step2DetailsFormProps) {
+export default function Step2DetailsForm({ subType, onSubmit, onBack, submitLabel = 'Continuer', isSubmitting = false }: Step2DetailsFormProps) {
   const [details, setDetails] = useState<Record<string, any>>({})
   const [selectedImages, setSelectedImages] = useState<File[]>([])
   const [validationErrors, setValidationErrors] = useState<string[]>([])
@@ -75,7 +77,7 @@ export default function Step2DetailsForm({ subType, onNext, onBack }: Step2Detai
 
   const handleNext = () => {
     if (validateForm()) {
-      onNext(details, selectedImages)
+      onSubmit(details, selectedImages)
     }
   }
 
@@ -512,7 +514,8 @@ export default function Step2DetailsForm({ subType, onNext, onBack }: Step2Detai
       <div className="flex gap-3">
         <button
           onClick={onBack}
-          className="flex-1 py-3 border border-[var(--border-color)] rounded-lg font-bold text-[var(--text-primary)] hover:bg-[var(--bg-card)] transition flex items-center justify-center gap-2"
+          disabled={isSubmitting}
+          className="flex-1 py-3 border border-[var(--border-color)] rounded-lg font-bold text-[var(--text-primary)] hover:bg-[var(--bg-card)] disabled:opacity-50 transition flex items-center justify-center gap-2"
         >
           <ChevronLeft className="w-4 h-4" />
           Retour
@@ -520,9 +523,10 @@ export default function Step2DetailsForm({ subType, onNext, onBack }: Step2Detai
 
         <button
           onClick={handleNext}
+          disabled={isSubmitting}
           className="flex-1 py-3 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg font-bold flex items-center justify-center gap-2 transition"
         >
-          Continuer
+          {submitLabel}
           <ChevronRight className="w-4 h-4" />
         </button>
       </div>

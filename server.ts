@@ -91,7 +91,138 @@ Texte à analyser: "${text}"`
     }
   });
 
-  // Vite middleware for development
+  // API Route: Supabase Webhooks → OneSignal Push Notifications
+  app.post("/api/webhooks/push", async (req, res) => {
+    try {
+      // Verify webhook signature for security
+      const webhookSecret = process.env.SUPABASE_WEBHOOK_SECRET;
+      const headerSecret = req.headers["x-supabase-webhook-secret"];
+
+      if (webhookSecret && headerSecret !== webhookSecret) {
+        console.warn("[WEBHOOK] Invalid webhook secret");
+        return res.status(401).json({ error: "Unauthorized" });
+      }
+
+      const { table, type, record } = req.body;
+
+      if (!table || !record) {
+        return res.status(400).json({ error: "Missing table or record" });
+      }
+
+      // Check if OneSignal is configured
+      const oneSignalAppId = process.env.VITE_ONESIGNAL_APP_ID;
+      const oneSignalRestKey = process.env.ONESIGNAL_REST_API_KEY;
+
+      if (!oneSignalAppId || oneSignalAppId === "YOUR_ONESIGNAL_APP_ID_HERE" ||
+          !oneSignalRestKey || oneSignalRestKey === "YOUR_ONESIGNAL_REST_API_KEY_HERE") {
+        console.warn("[WEBHOOK] OneSignal not configured - skipping push notification");
+        return res.status(200).json({ message: "OneSignal not configured" });
+      }
+
+      let pushPayload: any = {
+        app_id: oneSignalAppId,
+      };
+
+      // Handle chat_messages table (private messages)
+      if (table === "chat_messages" && type === "INSERT") {
+        console.log("[WEBHOOK] Processing new chat message for user:", record.receiver_id);
+
+        pushPayload = {
+          ...pushPayload,
+          headings: { en: "Nouveau message" },
+          contents: { en: record.content || "Vous avez reçu un message" },
+          include_external_user_ids: [record.receiver_id],
+          ios_badgeType: "Increase",
+          ios_badgeCount: 1,
+        };
+
+        console.log("[WEBHOOK] Chat message payload prepared:", {
+          receiver: record.receiver_id,
+          content: record.content?.substring(0, 50),
+        });
+      }
+      // Handle alerts table (public security alerts)
+      else if (table === "alerts" && type === "INSERT") {
+        console.log("[WEBHOOK] Processing new alert:", record.title);
+
+        const formattedTitle = `[${(record.type || "ALERTE").toUpperCase()}] ${record.title}`;
+        const formattedBody = `Lieu: ${record.city}${record.neighborhood ? ` - ${record.neighborhood}` : " - Secteur non spécifié"}. Ouvrez l'application pour plus de détails.`;
+
+        pushPayload = {
+          ...pushPayload,
+          headings: { en: formattedTitle },
+          contents: { en: formattedBody },
+          included_segments: ["All Users"],
+          big_picture: record.image_url || undefined,
+          ios_attachments: record.image_url ? { id: record.image_url } : undefined,
+          priority: 10, // High priority for alerts
+        };
+
+        console.log("[WEBHOOK] Alert payload prepared:", {
+          title: formattedTitle,
+          body: formattedBody,
+          image: record.image_url,
+        });
+      }
+      // Handle chat_rooms table (new conversations)
+      else if (table === "chat_rooms" && type === "INSERT") {
+        console.log("[WEBHOOK] Processing new chat room:", record.id);
+
+        const participants = [record.finder_id, record.owner_id].filter(Boolean);
+
+        if (participants.length === 0) {
+          console.warn("[WEBHOOK] No valid participants in chat room");
+          return res.status(200).json({ message: "No valid participants" });
+        }
+
+        pushPayload = {
+          ...pushPayload,
+          headings: { en: "Nouvelle conversation" },
+          contents: { en: "Une nouvelle conversation a été engagée. Cliquez pour discuter." },
+          include_external_user_ids: participants,
+          ios_badgeType: "Increase",
+          ios_badgeCount: 1,
+          priority: 8,
+        };
+
+        console.log("[WEBHOOK] Chat room payload prepared:", {
+          participants: participants,
+          alertId: record.alert_id,
+        });
+      } else {
+        console.log("[WEBHOOK] Unsupported table or type:", table, type);
+        return res.status(200).json({ message: "Unsupported table or type" });
+      }
+
+      // Send to OneSignal
+      const oneSignalResponse = await fetch("https://onesignal.com/api/v1/notifications", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Basic ${oneSignalRestKey}`,
+        },
+        body: JSON.stringify(pushPayload),
+      });
+
+      if (!oneSignalResponse.ok) {
+        const errorText = await oneSignalResponse.text();
+        console.error("[WEBHOOK] OneSignal API error:", oneSignalResponse.status, errorText);
+        return res.status(500).json({ error: "Failed to send push notification" });
+      }
+
+      const notificationData = await oneSignalResponse.json();
+      console.log("[WEBHOOK] Push notification sent successfully:", notificationData.id);
+
+      res.status(200).json({
+        success: true,
+        message: "Push notification sent",
+        notificationId: notificationData.id,
+      });
+    } catch (error) {
+      console.error("[WEBHOOK] Error processing webhook:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
   if (process.env.NODE_ENV !== "production") {
     const vite = await createViteServer({
       server: { middlewareMode: true },

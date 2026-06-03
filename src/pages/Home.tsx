@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
 import { supabase } from "../lib/supabase";
 import { formatDistanceToNow, parseISO, isPast } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -7,8 +7,9 @@ import { cn } from "../lib/utils";
 import { usePreferences } from "../lib/preferences";
 import { useAuth } from "../lib/AuthContext";
 import { useAlertReminder } from "../lib/useAlertReminder";
-import { AlertTriangle, Clock, MapPin, Share2, Search, Sliders } from "lucide-react";
+import { AlertTriangle, Clock, MapPin, Share2, Search, Sliders, Map } from "lucide-react";
 import AlertReminderModal from "../components/AlertReminderModal";
+import AlertsMap from "../components/AlertsMap";
 
 type Alert = {
   id: string;
@@ -53,12 +54,13 @@ export default function Home() {
         const { data, error } = await supabase
           .from("alerts")
           .select("*")
-          .eq("status", "actif")
+          .eq("status", "active")
           .order("created_at", { ascending: false });
 
         if (error) {
           console.warn("Supabase fetch failed", error);
         } else if (data) {
+          console.log('Fetched active alerts:', data.length);
           setAlerts(data as Alert[]);
           
           // Charger les premières images pour les alertes qui n'en ont pas
@@ -96,7 +98,11 @@ export default function Home() {
         'postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'alerts' },
         (payload) => {
-          setAlerts((prev) => [payload.new, ...prev]);
+          // Only add alerts with 'active' status to match filter
+          if (payload.new?.status === 'active') {
+            console.log('New active alert received:', payload.new.id);
+            setAlerts((prev) => [payload.new, ...prev]);
+          }
         }
       )
       .subscribe();
@@ -227,7 +233,27 @@ export default function Home() {
           </p>
         </div>
       ) : (
-        <section className="space-y-6">
+        <section className="space-y-8">
+          {/* Interactive Map Section */}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-2 h-2 rounded-full bg-[var(--text-secondary)]" />
+                <h2 className="text-xs font-bold uppercase tracking-widest text-[var(--text-secondary)]">Carte Interactive</h2>
+              </div>
+              <p className="text-[10px] text-[var(--text-tertiary)] uppercase tracking-wider">
+                {filteredAlerts.filter(a => a.latitude && a.longitude).length} alerte{filteredAlerts.filter(a => a.latitude && a.longitude).length !== 1 ? 's' : ''} géolocalisée{filteredAlerts.filter(a => a.latitude && a.longitude).length !== 1 ? 's' : ''}
+              </p>
+            </div>
+            <AlertsMap 
+              alerts={filteredAlerts}
+              onAlertClick={(alertId) => {
+                // Navigate to alert details when marker is clicked from popup
+                window.location.href = `/alert/${alertId}`;
+              }}
+            />
+          </div>
+
           {/* Critical Alerts Carousel */}
           {criticalAlerts.length > 0 && (
             <div className="space-y-4">
