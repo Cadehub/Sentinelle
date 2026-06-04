@@ -69,7 +69,7 @@ export function NotificationsProvider({ children }: { children: React.ReactNode 
 
     // 3. Abonnement Temps Réel avec le bon filtre
     const channel = supabase
-      .channel('schema-db-changes')
+      .channel(`notifications-inbox-${user.id}`)
       .on(
         'postgres_changes',
         {

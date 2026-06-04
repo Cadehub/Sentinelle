@@ -18,7 +18,7 @@ export function NotificationWatcher() {
     }
 
     const channel = supabase
-      .channel('schema-db-changes')
+      .channel('alerts-watcher')
       .on(
         'postgres_changes',
         {

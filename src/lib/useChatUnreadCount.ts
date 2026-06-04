@@ -14,73 +14,86 @@ export function useChatUnreadCount() {
       return;
     }
 
-    // 1. Fetch initial unread count
+    // 1. Fetch initial unread count from read status
     const fetchUnreadCount = async () => {
       try {
         const { data, error } = await supabase
-          .from('chat_messages')
-          .select('id', { count: 'exact' })
-          .eq('receiver_id', user.id)
-          .eq('is_read', false);
+          .from('chat_read_status')
+          .select('unread_count')
+          .eq('user_id', user.id);
 
         if (error) {
+          if (error.code === 'PGRST205') {
+            console.warn('chat_read_status table not available, unread chat count will remain zero.');
+            setUnreadCount(0);
+            return false;
+          }
+
           console.error('Error fetching unread count:', error);
           setUnreadCount(0);
-        } else {
-          setUnreadCount(data?.length || 0);
+          return false;
         }
+
+        const total = data?.reduce((sum: number, item: any) => sum + (item.unread_count || 0), 0) || 0;
+        setUnreadCount(total);
+        return true;
       } catch (err) {
         console.error('Failed to fetch unread count:', err);
         setUnreadCount(0);
+        return false;
       } finally {
         setLoading(false);
       }
     };
 
-    fetchUnreadCount();
+    let channel: any = null;
 
-    // 2. Subscribe to real-time changes on chat_messages
-    const channel = supabase
-      .channel(`chat-unread-${user.id}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'chat_messages',
-          filter: `receiver_id=eq.${user.id}`
-        },
-        (payload) => {
-          // Check if the new message is unread
-          const newMessage = payload.new as any;
-          if (newMessage.is_read === false) {
-            setUnreadCount((prev) => prev + 1);
-          }
-        }
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'chat_messages',
-          filter: `receiver_id=eq.${user.id}`
-        },
-        (payload) => {
-          // When a message is marked as read
-          const updatedMessage = payload.new as any;
-          const oldMessage = payload.old as any;
-          
-          if (oldMessage.is_read === false && updatedMessage.is_read === true) {
-            setUnreadCount((prev) => Math.max(0, prev - 1));
-          }
-        }
-      )
-      .subscribe();
+    fetchUnreadCount().then((hasReadStatus) => {
+      if (!hasReadStatus) return;
 
-    // 3. Cleanup
+      // 2. Subscribe to real-time changes on chat_read_status
+      channel = supabase
+        .channel(`chat-unread-${user.id}`)
+        .on(
+          'postgres_changes',
+          {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'chat_read_status',
+            filter: `user_id=eq.${user.id}`
+          },
+          (payload) => {
+            const newStatus = payload.new as any;
+            if (newStatus.unread_count && newStatus.unread_count > 0) {
+              setUnreadCount((prev) => prev + newStatus.unread_count);
+            }
+          }
+        )
+        .on(
+          'postgres_changes',
+          {
+            event: 'UPDATE',
+            schema: 'public',
+            table: 'chat_read_status',
+            filter: `user_id=eq.${user.id}`
+          },
+          (payload) => {
+            const oldStatus = payload.old as any;
+            const newStatus = payload.new as any;
+            const diff = (newStatus.unread_count || 0) - (oldStatus.unread_count || 0);
+            
+            if (diff !== 0) {
+              setUnreadCount((prev) => Math.max(0, prev + diff));
+            }
+          }
+        )
+        .subscribe();
+    });
+
     return () => {
-      supabase.removeChannel(channel);
+      if (channel) {
+        supabase.removeChannel(channel);
+      }
     };
   }, [user?.id]);
 
