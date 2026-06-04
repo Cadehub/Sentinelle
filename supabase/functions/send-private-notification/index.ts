@@ -55,7 +55,7 @@ serve(async (req) => {
 
     const { data: chatRoom, error: roomError } = await supabase
       .from("chat_rooms")
-      .select("user_id_owner, user_id_discoverer")
+      .select("owner_id, finder_id")
       .eq("id", roomId)
       .single();
 
@@ -67,7 +67,7 @@ serve(async (req) => {
       });
     }
 
-    const receiverId = chatRoom.user_id_owner === senderId ? chatRoom.user_id_discoverer : chatRoom.user_id_owner;
+    const receiverId = chatRoom.owner_id === senderId ? chatRoom.finder_id : chatRoom.owner_id;
 
     console.log(`Destinataire identifié: ${receiverId}`);
 
