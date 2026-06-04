@@ -1,6 +1,5 @@
 [build]
   command = "npm install --legacy-peer-deps && npm run build"
-  functions = "supabase/functions"
   publish = "dist"
 
 [[redirects]]

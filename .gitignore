@@ -6,3 +6,4 @@ coverage/
 *.log
 .env*
 !.env.example
+sentinelle-c4f3b-firebase-adminsdk-fbsvc-356eeea468.json
