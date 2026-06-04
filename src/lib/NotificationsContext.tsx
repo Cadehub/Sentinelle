@@ -68,9 +68,11 @@ export function NotificationsProvider({ children }: { children: React.ReactNode 
     fetchNotifs();
 
     // 3. Abonnement Temps Réel avec le bon filtre
-    const channel = supabase
-      .channel(`notifications-inbox-${user.id}`)
-      .on(
+    const channel = supabase.channel(`notifications-inbox-${user.id}`);
+    if (!channel?.on) {
+      console.warn("Le canal de notification n'est pas encore prêt.");
+    } else {
+      channel.on(
         'postgres_changes',
         {
           event: 'INSERT',
@@ -103,12 +105,15 @@ export function NotificationsProvider({ children }: { children: React.ReactNode 
             } catch {}
           }
         }
-      )
-      .subscribe();
+      );
+      channel.subscribe();
+    }
 
     // 4. Nettoyage
     return () => {
-      supabase.removeChannel(channel);
+      if (channel) {
+        supabase.removeChannel(channel);
+      }
     };
   }, [user?.id]);
 
@@ -116,9 +121,11 @@ export function NotificationsProvider({ children }: { children: React.ReactNode 
   useEffect(() => {
     if (!preferences.notificationsEnabled) return;
 
-    const channelAlerts = supabase
-      .channel('public:alerts:notifications')
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'alerts' }, payload => {
+    const channelAlerts = supabase.channel('public:alerts:notifications');
+    if (!channelAlerts?.on) {
+      console.warn("Le canal de notification n'est pas encore prêt.");
+    } else {
+      channelAlerts.on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'alerts' }, payload => {
         const newAlert = payload.new;
         
         try {
@@ -146,12 +153,15 @@ export function NotificationsProvider({ children }: { children: React.ReactNode 
         } catch(e) {
           console.error(e);
         }
-      })
-      .subscribe();
+      });
+      channelAlerts.subscribe();
+    }
 
-    const channelComments = supabase
-      .channel('public:comments:notifications')
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'comments' }, payload => {
+    const channelComments = supabase.channel('public:comments:notifications');
+    if (!channelComments?.on) {
+      console.warn("Le canal de notification n'est pas encore prêt.");
+    } else {
+      channelComments.on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'comments' }, payload => {
         const newComment = payload.new;
         if (
           preferences.interactedAlerts.length > 0 &&
@@ -170,12 +180,17 @@ export function NotificationsProvider({ children }: { children: React.ReactNode 
             });
           }
         }
-      })
-      .subscribe();
+      });
+      channelComments.subscribe();
+    }
 
     return () => {
-      supabase.removeChannel(channelAlerts);
-      supabase.removeChannel(channelComments);
+      if (channelAlerts) {
+        supabase.removeChannel(channelAlerts);
+      }
+      if (channelComments) {
+        supabase.removeChannel(channelComments);
+      }
     };
   }, [preferences.subscribedCities, preferences.subscribedTypes, preferences.radarNeighborhoods, preferences.notificationsEnabled, preferences.interactedAlerts, session?.user?.id]);
 

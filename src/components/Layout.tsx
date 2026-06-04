@@ -14,12 +14,12 @@ export default function Layout() {
   const { theme, setTheme } = useTheme();
   const { user, signOut } = useAuth();
   const { profile, loading: profileLoading } = useProfile(); // ← Récupère aussi loading
+  const location = useLocation();
   const navigate = useNavigate();
   const { notifications, unreadCount, markAsRead, deleteNotification, clearNotifications } = useNotifications();
   const { unreadCount: chatUnreadCount, oneSignalReady } = useNotificationsWithOneSignal();
   const [showNotifs, setShowNotifs] = useState(false);
-  const location = useLocation();
-  
+
   // Logique conditionnelle : afficher le bouton uniquement si admin
   // Ne pas afficher tant que profileLoading === true (évite le flickering)
   const isAdmin = !profileLoading && profile?.role === 'admin';

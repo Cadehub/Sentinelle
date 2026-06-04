@@ -17,9 +17,11 @@ export function NotificationWatcher() {
       Notification.requestPermission();
     }
 
-    const channel = supabase
-      .channel('alerts-watcher')
-      .on(
+    const channel = supabase.channel('alerts-watcher');
+    if (!channel?.on) {
+      console.warn("Le canal d'écoute des notifications n'est pas encore prêt.");
+    } else {
+      channel.on(
         'postgres_changes',
         {
           event: 'INSERT',
@@ -72,11 +74,14 @@ export function NotificationWatcher() {
             console.error('[NotificationWatcher] Error processing alert:', err);
           }
         }
-      )
-      .subscribe();
+      );
+      channel.subscribe();
+    }
 
     return () => {
-      supabase.removeChannel(channel);
+      if (channel) {
+        supabase.removeChannel(channel);
+      }
     };
   }, [notificationsEnabled, subscribedCities, subscribedTypes, radarNeighborhoods, addNotification]);
 
@@ -84,16 +89,20 @@ export function NotificationWatcher() {
   useEffect(() => {
     if (!user?.id || !notificationsEnabled) return;
 
-    const notificationsChannel = supabase
-      .channel(`notifications_${user.id}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'notifications',
-          filter: `user_id=eq.${user.id}`,
-        },
+    const notificationsChannel = supabase.channel(`notifications_${user.id}`);
+    if (!notificationsChannel?.on) {
+      console.warn("Le canal d'écoute des notifications n'est pas encore prêt.");
+      return;
+    }
+
+    notificationsChannel.on(
+      'postgres_changes',
+      {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'notifications',
+        filter: `user_id=eq.${user.id}`,
+      },
         (payload) => {
           const newNotification = payload.new as any;
 
@@ -125,11 +134,14 @@ export function NotificationWatcher() {
             console.error('[NotificationWatcher] Error processing notification:', err);
           }
         }
-      )
-      .subscribe();
+      );
+
+    notificationsChannel.subscribe();
 
     return () => {
-      supabase.removeChannel(notificationsChannel);
+      if (notificationsChannel) {
+        supabase.removeChannel(notificationsChannel);
+      }
     };
   }, [user?.id, notificationsEnabled, addNotification]);
 

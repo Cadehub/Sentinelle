@@ -6,6 +6,7 @@ import { useState, useEffect } from "react";
 import { useAuth } from "../lib/AuthContext";
 import { supabase } from "../lib/supabase";
 import { useTranslation } from "react-i18next";
+import { requestPushPermission } from "../utils/firebase";
 
 const CITIES = ["Douala", "Yaoundé", "Garoua", "Bamenda", "Maroua", "Bafoussam", "Ngaoundéré", "Kribi", "Buea"];
 const ALERT_TYPES = ["Vol", "Perte", "Objet Trouvé", "Agression", "Accident", "Urgence Médicale", "Incendie", "Autre"];
@@ -75,19 +76,21 @@ export default function Settings() {
 
 
   const requestNotificationPermission = async () => {
-    if (!("Notification" in window)) {
-      alert(t('settings.no_notif_support', 'Ce navigateur ne supporte pas les notifications.'));
-      return;
-    }
-    if (Notification.permission === "granted") {
-      setPreferences({ notificationsEnabled: !preferences.notificationsEnabled });
-    } else if (Notification.permission !== "denied") {
-      const permission = await Notification.requestPermission();
-      if (permission === "granted") {
+    console.log("Clic détecté sur le switch, tentative de récupération du token...");
+    
+    try {
+      const token = await requestPushPermission();
+      
+      if (token) {
+        console.log("Token Firebase reçu:", token);
         setPreferences({ notificationsEnabled: true });
+      } else {
+        console.warn("Aucun token reçu, notifications refusées ou bloquées.");
+        setPreferences({ notificationsEnabled: false });
       }
-    } else {
-      alert(t('settings.notif_blocked', 'Les notifications ont été bloquées dans les paramètres.'));
+    } catch (error) {
+      console.error("Erreur Firebase lors de la récupération du token:", error);
+      setPreferences({ notificationsEnabled: false });
     }
   };
 
