@@ -189,8 +189,14 @@ export default function ChatRoom() {
 
   // Auto-scroll to bottom when messages change
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
   };
+
+  useEffect(() => {
+    if (messages.length === 0) return;
+    const timer = window.setTimeout(() => scrollToBottom(), 100);
+    return () => window.clearTimeout(timer);
+  }, [messages]);
 
   // Fetch message history for current room
   const fetchMessages = async () => {
@@ -563,7 +569,10 @@ export default function ChatRoom() {
       </div>
 
       {/* ZONE 2: Messages - centale avec scroll indépendant (ne touche jamais le header ni footer) */}
-      <div className="absolute top-0 bottom-0 left-0 right-0 overflow-y-auto pt-[72px] pb-[72px] p-4 space-y-4 bg-[var(--bg-primary)]">
+      <div
+        className="absolute top-0 bottom-0 left-0 right-0 overflow-y-auto pt-[72px] pb-[72px] p-4 space-y-4 bg-[var(--bg-primary)]"
+        style={{ scrollPaddingTop: "72px", scrollPaddingBottom: "72px" }}
+      >
         {messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full gap-4 text-[var(--text-secondary)]">
             <div className="text-5xl opacity-30">[ ]</div>

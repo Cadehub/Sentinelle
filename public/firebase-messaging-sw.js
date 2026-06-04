@@ -17,7 +17,40 @@ messaging.onBackgroundMessage((payload) => {
   const notificationTitle = payload.notification?.title || 'Notification Sentinelle';
   const notificationOptions = {
     body: payload.notification?.body || '',
-    icon: payload.notification?.image || '/favicon.ico'
+    icon: payload.notification?.image || '/favicon.ico',
+    data: payload.data || {}
   };
   self.registration.showNotification(notificationTitle, notificationOptions);
+});
+
+self.addEventListener('notificationclick', (event) => {
+  console.log('Notification clicked:', event.notification);
+  
+  event.notification.close();
+  
+  const data = event.notification.data;
+  let targetUrl = '/';
+  
+  if (data.type === 'private_message' && data.room_id) {
+    targetUrl = `/chats/${data.room_id}`;
+  } else if (data.type === 'global_alert') {
+    targetUrl = data.cta_url && data.cta_url.trim() ? data.cta_url : '/';
+  } else if (data.type === 'citizen_alert' && data.alert_id) {
+    targetUrl = `/alerts/${data.alert_id}`;
+  }
+  
+  console.log(`Navigation vers: ${targetUrl}`);
+  
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
+      for (let client of clientList) {
+        if (client.url === targetUrl && 'focus' in client) {
+          return client.focus();
+        }
+      }
+      if (clients.openWindow) {
+        return clients.openWindow(targetUrl);
+      }
+    })
+  );
 });

@@ -30,7 +30,7 @@ export default function Layout() {
   const shouldHideNavbar = isDiscussionDetailPage;
 
   return (
-    <div className="min-h-screen bg-[var(--bg-primary)] text-[var(--text-primary)] font-sans antialiased flex flex-col pt-3 sm:pt-4 md:pt-8 md:px-6 lg:px-8 pb-24 md:pb-8">
+    <div className="min-h-screen bg-[var(--bg-primary)] text-[var(--text-primary)] font-sans antialiased flex flex-col pt-safe-area pt-3 sm:pt-4 md:pt-8 md:px-6 lg:px-8 pb-24 md:pb-8">
       {/* Top Header */}
       <header className="flex justify-between items-center md:items-end mb-4 sm:mb-6 md:mb-8 border-b border-[var(--border-color)] pb-3 sm:pb-4 md:pb-6 px-3 sm:px-4 md:px-0">
         <div className="container mx-auto flex flex-row items-center justify-between max-w-7xl gap-2 sm:gap-4">

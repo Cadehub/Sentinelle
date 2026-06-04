@@ -6,7 +6,7 @@ import { useState, useEffect } from "react";
 import { useAuth } from "../lib/AuthContext";
 import { supabase } from "../lib/supabase";
 import { useTranslation } from "react-i18next";
-import { requestPushPermission } from "../utils/firebase";
+import { requestPushPermission, saveTokenToSupabase } from "../utils/firebase";
 
 const CITIES = ["Douala", "Yaoundé", "Garoua", "Bamenda", "Maroua", "Bafoussam", "Ngaoundéré", "Kribi", "Buea"];
 const ALERT_TYPES = ["Vol", "Perte", "Objet Trouvé", "Agression", "Accident", "Urgence Médicale", "Incendie", "Autre"];
@@ -83,7 +83,15 @@ export default function Settings() {
       
       if (token) {
         console.log("Token Firebase reçu:", token);
-        setPreferences({ notificationsEnabled: true });
+        
+        const saved = await saveTokenToSupabase(token);
+        if (saved) {
+          console.log("Token sauvegarde avec succes dans Supabase.");
+          setPreferences({ notificationsEnabled: true });
+        } else {
+          console.warn("Echec de la sauvegarde du token dans Supabase.");
+          setPreferences({ notificationsEnabled: false });
+        }
       } else {
         console.warn("Aucun token reçu, notifications refusées ou bloquées.");
         setPreferences({ notificationsEnabled: false });
