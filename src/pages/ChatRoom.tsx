@@ -80,27 +80,39 @@ const compressImage = (file: File): Promise<string> => {
   });
 };
 
-// Upload to ImgBB API
-const uploadToImgBB = async (base64Image: string): Promise<string> => {
-  const apiKey = import.meta.env.VITE_IMGBB_API_KEY;
-  if (!apiKey) throw new Error("VITE_IMGBB_API_KEY manquant");
+// Upload to ImgBB API (robust: accepts File or base64 string and reads either env key)
+const uploadToImgBB = async (image: File | string): Promise<string> => {
+  const apiKey = import.meta.env.VITE_IMGBB_API_KEY || (import.meta.env as any).IMGBB_API_KEY;
+  if (!apiKey) throw new Error("La clé API ImgBB est introuvable dans l'environnement de production.");
 
   const formData = new FormData();
-  formData.append("image", base64Image.split(",")[1]);
-  formData.append("key", apiKey);
 
-  const response = await fetch("https://api.imgbb.com/1/upload", {
-    method: "POST",
-    body: formData,
-  });
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.error?.message || "Failed to upload to ImgBB");
+  if (typeof image === 'string') {
+    // support data URLs or raw base64
+    const base64 = image.includes(',') ? image.split(',')[1] : image;
+    formData.append('image', base64);
+  } else {
+    formData.append('image', image);
   }
 
-  const data = await response.json();
-  return data.data.url;
+  try {
+    console.log('Tentative d\'upload vers ImgBB...');
+    const res = await fetch(`https://api.imgbb.com/1/upload?key=${apiKey}`, {
+      method: 'POST',
+      body: formData,
+    });
+
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => ({}));
+      throw new Error(errorData.error?.message || 'Échec de l\'upload de l\'image sur ImgBB');
+    }
+
+    const result = await res.json();
+    return result.data.url;
+  } catch (err) {
+    console.error('ImgBB upload error:', err);
+    throw err;
+  }
 };
 
 // Local message safety check using regex and keyword dictionary
