@@ -31,6 +31,23 @@ export async function requestPushPermission(): Promise<string | null> {
   }
 }
 
+async function registerFirebaseMessagingSW(): Promise<ServiceWorkerRegistration | undefined> {
+  if (typeof window === 'undefined' || !('serviceWorker' in navigator)) {
+    return undefined;
+  }
+
+  try {
+    const registration = await navigator.serviceWorker.getRegistration('/firebase-messaging-sw.js');
+    if (registration) {
+      return registration;
+    }
+    return await navigator.serviceWorker.register('/firebase-messaging-sw.js');
+  } catch (error) {
+    console.warn('Impossible d\'enregistrer le service worker Firebase Messaging:', error);
+    return undefined;
+  }
+}
+
 export async function getFirebaseToken(): Promise<string | null> {
   if (!messaging) {
     console.warn("Firebase Messaging n'est pas initialisé.");
@@ -44,7 +61,7 @@ export async function getFirebaseToken(): Promise<string | null> {
 
   try {
     const vapidKey = 'BHqFjUVmUaty7xtbxsodS6prP4zHX1m4ssuoLEq7TkPH_Cqq7_vLf8vqOYuKGUv_mU9lNPDuI1xhp8TVh3Qz4wE';
-    const serviceWorkerRegistration = "serviceWorker" in navigator ? await navigator.serviceWorker.ready : undefined;
+    const serviceWorkerRegistration = await registerFirebaseMessagingSW();
     const currentToken = await getToken(messaging, { vapidKey, serviceWorkerRegistration });
 
     if (currentToken) {
