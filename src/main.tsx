@@ -21,8 +21,13 @@ async function registerFirebaseMessagingServiceWorker() {
 }
 
 if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    registerFirebaseMessagingServiceWorker();
+  window.addEventListener('load', async () => {
+    try {
+      const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
+      console.log('Service Worker enregistré avec succès, scope :', registration.scope);
+    } catch (error) {
+      console.error('Le Service Worker n\'a pas pu être enregistré, mais l\'app continue :', error);
+    }
   });
 }
 
