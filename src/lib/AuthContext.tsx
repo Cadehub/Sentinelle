@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from './supabase';
 import { Session, User } from '@supabase/supabase-js';
+import { handleNotificationRegistration } from '../utils/firebase';
 
 type AuthContextType = {
   session: Session | null;
@@ -28,10 +29,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setLoading(false);
     });
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
+
+      if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION') && session?.user) {
+        console.log(`Utilisateur authentifié détecté (${session.user.id}). Vérification des notifications...`);
+        await handleNotificationRegistration(session.user.id);
+      }
     });
 
     return () => subscription.unsubscribe();

@@ -1,13 +1,17 @@
 import { useEffect } from 'react';
+import { getMessaging, onMessage } from 'firebase/messaging';
 import { supabase } from '../lib/supabase';
 import { usePreferences } from '../lib/preferences';
 import { useNotifications } from '../lib/NotificationsContext';
 import { useAuth } from '../lib/AuthContext';
+import { getRegionFromCity } from "../lib/regions";
+import { app } from '../utils/firebaseConfig';
 
 export function NotificationWatcher() {
   const { user } = useAuth();
-  const { preferences: { notificationsEnabled, subscribedCities, subscribedTypes, radarNeighborhoods } } = usePreferences();
+  const { preferences: { notificationsEnabled, subscribedRegions, subscribedTypes, radarNeighborhoods } } = usePreferences();
   const { addNotification } = useNotifications();
+  const appIconUrl = 'https://res.cloudinary.com/droxtvmsy/image/upload/v1779060726/IMG-20260517-WA0007_rff0ko.png';
 
   useEffect(() => {
     if (!notificationsEnabled) return;
@@ -33,17 +37,17 @@ export function NotificationWatcher() {
           
           try {
             // Check filters
-            const matchCity = subscribedCities.length > 0 ? subscribedCities.includes(newAlert.city) : false;
+            const matchRegion = subscribedRegions.length > 0 ? subscribedRegions.includes(getRegionFromCity(newAlert.city)) : false;
             const matchType = subscribedTypes.length > 0 ? subscribedTypes.includes(newAlert.type) : false;
             const matchRadar = radarNeighborhoods.length > 0 ? radarNeighborhoods.some(r => newAlert.neighborhood.toLowerCase().includes(r.toLowerCase())) : false;
             
             // Show notification if: (no filters set) OR (matches at least one filter)
             const shouldNotify = (
-              (subscribedCities.length === 0 && subscribedTypes.length === 0 && radarNeighborhoods.length === 0) ||
-              matchCity || matchType || matchRadar
+              (subscribedRegions.length === 0 && subscribedTypes.length === 0 && radarNeighborhoods.length === 0) ||
+              matchRegion || matchType || matchRadar
             );
 
-            if (newAlert.status === 'actif' && shouldNotify) {
+            if ((newAlert.status === "active" || newAlert.status === "actif") && shouldNotify) {
               const isRadarAlert = matchRadar;
               const title = isRadarAlert ? `[RADAR] DÉCLENCHÉ: ${newAlert.type}` : `Nouvelle alerte: ${newAlert.type}`;
               const body = `${newAlert.neighborhood}, ${newAlert.city} - ${newAlert.title}`;
@@ -59,7 +63,7 @@ export function NotificationWatcher() {
               if (Notification.permission === 'granted') {
                 const notification = new Notification(isRadarAlert ? "[RADAR] Sentinelle" : "Alerte Sentinelle", {
                   body,
-                  icon: '/icon-alert.png',
+                  icon: appIconUrl,
                   tag: `alert-${newAlert.id}`,
                   requireInteraction: isRadarAlert, // Keep radar alerts visible longer
                 });
@@ -83,7 +87,7 @@ export function NotificationWatcher() {
         supabase.removeChannel(channel);
       }
     };
-  }, [notificationsEnabled, subscribedCities, subscribedTypes, radarNeighborhoods, addNotification]);
+  }, [notificationsEnabled, subscribedRegions, subscribedTypes, radarNeighborhoods, addNotification]);
 
   // Real-time listener for notifications table
   useEffect(() => {
@@ -118,7 +122,7 @@ export function NotificationWatcher() {
             if (Notification.permission === 'granted') {
               const notification = new Notification(newNotification.title, {
                 body: newNotification.body,
-                icon: '/icon-notification.png',
+                icon: appIconUrl,
                 tag: `notification-${newNotification.id}`,
               });
 
@@ -144,6 +148,52 @@ export function NotificationWatcher() {
       }
     };
   }, [user?.id, notificationsEnabled, addNotification]);
+
+  useEffect(() => {
+    if (!notificationsEnabled) return;
+    if (typeof window === 'undefined') return;
+
+    let unsubscribe: (() => void) | undefined;
+    try {
+      const messaging = getMessaging(app);
+      unsubscribe = onMessage(messaging, (payload) => {
+        const title = payload.notification?.title || 'Sentinelle';
+        const body = payload.notification?.body || '';
+        const data = payload.data || {};
+
+        let link: string | undefined;
+        if (data.type === 'private_message' && data.room_id) {
+          link = `/discussions/${data.room_id}`;
+        } else if (data.type === 'citizen_alert' && data.alert_id) {
+          link = `/alert/${data.alert_id}`;
+        } else if (data.type === 'global_alert' && data.cta_url && String(data.cta_url).trim()) {
+          link = String(data.cta_url);
+        }
+
+        addNotification({ title, body, link });
+
+        if (Notification.permission === 'granted') {
+          const notification = new Notification(title, {
+            body,
+            icon: payload.notification?.image || appIconUrl,
+          });
+
+          if (link) {
+            notification.onclick = () => {
+              window.focus();
+              window.location.href = link;
+            };
+          }
+        }
+      });
+    } catch (err) {
+      console.warn('[NotificationWatcher] Impossible d’activer onMessage(Firebase).', err);
+    }
+
+    return () => {
+      unsubscribe?.();
+    };
+  }, [notificationsEnabled, addNotification]);
 
   return null; // This component doesn't render anything
 }

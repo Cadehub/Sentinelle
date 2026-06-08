@@ -53,7 +53,7 @@ export default function RuleViolationModal({ isOpen, onClose }: RuleViolationMod
           </button>
           <button
             onClick={handleViewRules}
-            className="flex-1 px-4 py-2 text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition font-medium"
+            className="flex-1 px-4 py-2 text-white bg-[var(--color-accent)] rounded-lg hover:bg-[var(--color-accent)] transition font-medium"
           >
             Voir les règles
           </button>

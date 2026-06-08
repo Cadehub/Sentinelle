@@ -100,13 +100,32 @@ export default function PublishModal({ isOpen, onClose, onSuccess }: PublishModa
         }
       }
 
+      const mainType = alertData.mainType;
+      const subType = alertData.subType;
+      const detailsCategory = (formData.details && (formData.details.category as string | undefined)) || undefined;
+      const title =
+        subType === "document"
+          ? `${detailsCategory || "Document"} ${mainType === "lost" ? "perdu" : "trouvé"}`
+          : subType === "object"
+            ? `${detailsCategory || "Objet"} ${mainType === "lost" ? "perdu" : "trouvé"}`
+            : subType === "person"
+              ? `${(formData.details?.full_name as string | undefined) || "Personne"} ${mainType === "lost" ? "disparue" : "trouvée"}`
+              : subType === "vehicle"
+                ? `${(formData.details?.vehicle_type as string | undefined) || "Véhicule"} ${mainType === "lost" ? "perdu" : "trouvé"}`
+                : subType === "animal"
+                  ? `${(formData.details?.species as string | undefined) || "Animal"} ${mainType === "lost" ? "perdu" : "trouvé"}`
+                  : `${mainType === "lost" ? "Perte" : "Découverte"}`;
+
       // Insert alert
       const { data: alertInsert, error: alertError } = await supabase
         .from('alerts')
         .insert({
-          title: alertData.mainType,
+          title,
           description: formData.description,
-          type: alertData.mainType,
+          type: mainType,
+          main_type: mainType,
+          sub_type: subType,
+          item_category: detailsCategory,
           latitude: formData.latitude,
           longitude: formData.longitude,
           city: formData.location.split(',')[0] || 'Non spécifié',
@@ -317,12 +336,12 @@ export default function PublishModal({ isOpen, onClose, onSuccess }: PublishModa
   }
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[9999] p-4">
-      <div ref={modalContentRef} className="bg-[var(--bg-primary)] rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 bg-black/35 backdrop-blur-sm flex items-center justify-center z-[9999] p-3 sm:p-4">
+      <div ref={modalContentRef} className="ui-card max-w-2xl w-full max-h-[92vh] overflow-y-auto">
         {/* Header */}
-        <div className="sticky top-0 bg-[var(--bg-primary)] border-b border-[var(--border-color)] px-6 py-4 flex items-center justify-between">
+        <div className="sticky top-0 bg-[var(--bg-card)]/92 backdrop-blur-xl border-b border-[var(--border-color)] px-5 sm:px-6 py-4 flex items-center justify-between">
           <div className="flex-1">
-            <h1 className="text-2xl font-bold text-[var(--text-primary)]">
+            <h1 className="text-xl sm:text-2xl font-bold text-[var(--text-primary)]">
               Signaler une alerte
             </h1>
             <p className="text-sm text-[var(--text-secondary)] mt-1">
@@ -331,25 +350,25 @@ export default function PublishModal({ isOpen, onClose, onSuccess }: PublishModa
           </div>
           <button
             onClick={handleClose}
-            className="p-2 hover:bg-[var(--bg-card)] rounded-lg transition"
+            className="ui-icon-button w-10 h-10 shadow-none hover:border-[var(--border-color-strong)] active:scale-95 transition-transform"
           >
             <X className="w-6 h-6 text-[var(--text-primary)]" />
           </button>
         </div>
 
         {/* Progress bar */}
-        <div className="h-1 bg-[var(--bg-card)] flex">
+        <div className="h-1.5 bg-[var(--border-color)] flex">
           <div
-            className="bg-blue-600 transition-all duration-300"
+            className="bg-[var(--color-accent)] transition-all duration-300"
             style={{ width: `${(currentStep / 2) * 100}%` }}
           />
         </div>
 
         {/* Content */}
-        <div className="p-6">
+        <div className="p-5 sm:p-6">
           {/* Error message */}
           {error && (
-            <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg flex gap-3">
+            <div className="mb-4 ui-card p-4 border-red-500/20 bg-red-500/5 flex gap-3">
               <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
               <div>
                 <h3 className="font-semibold text-red-900">Erreur</h3>
@@ -360,11 +379,11 @@ export default function PublishModal({ isOpen, onClose, onSuccess }: PublishModa
 
           {/* Success message */}
           {successMessage && (
-            <div className="mb-4 p-4 bg-green-50 border border-green-200 rounded-lg flex gap-3">
-              <CheckCircle2 size={20} className="text-green-600 flex-shrink-0 mt-0.5" />
+            <div className="mb-4 ui-card p-4 border-emerald-500/20 bg-emerald-500/5 flex gap-3">
+              <CheckCircle2 size={20} className="text-emerald-600 flex-shrink-0 mt-0.5" />
               <div>
-                <h3 className="font-semibold text-green-900">Succès</h3>
-                <p className="text-sm text-green-800">{successMessage}</p>
+                <h3 className="font-semibold text-emerald-900">Succès</h3>
+                <p className="text-sm text-emerald-800">{successMessage}</p>
               </div>
             </div>
           )}

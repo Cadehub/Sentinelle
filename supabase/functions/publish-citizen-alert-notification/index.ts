@@ -1,12 +1,14 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import admin from "npm:firebase-admin";
+import { GoogleAuth } from "npm:google-auth-library";
 
 const serviceAccountJson = Deno.env.get("FIREBASE_SERVICE_ACCOUNT");
 let serviceAccount: Record<string, unknown> | null = null;
+let projectId = "";
 
 if (serviceAccountJson) {
   try {
     serviceAccount = JSON.parse(serviceAccountJson);
+    projectId = (serviceAccount as any).project_id;
   } catch (error) {
     console.error("FIREBASE_SERVICE_ACCOUNT n'est pas un JSON valide.", error);
   }
@@ -14,9 +16,12 @@ if (serviceAccountJson) {
   console.error("FIREBASE_SERVICE_ACCOUNT n'est pas défini.");
 }
 
-if (admin.apps.length === 0 && serviceAccount) {
-  admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount as any),
+// Initialisation de l'authentification Google OAuth2 (HTTPS classique, 100% stable sur Deno)
+let auth: GoogleAuth | null = null;
+if (serviceAccount) {
+  auth = new GoogleAuth({
+    credentials: serviceAccount,
+    scopes: ["https://www.googleapis.com/auth/firebase.messaging"],
   });
 }
 
@@ -51,50 +56,77 @@ serve(async (req) => {
 
     // Formatage dynamique de la notification push pour le citoyen
     const notificationTitle = `Nouvelle alerte : ${alertType}`;
-    const notificationBody = `${alertTitle}${alertCity ? ` a ${alertCity}` : ""}`.substring(0, 150);
-
-    const messaging = admin.messaging();
-
+    const notificationBody = `${alertTitle}${alertCity ? ` à ${alertCity}` : ""}`.substring(0, 150);
     const notificationIconUrl = "https://res.cloudinary.com/droxtvmsy/image/upload/v1779060726/IMG-20260517-WA0007_rff0ko.png";
-    const message = {
-      notification: {
-        title: notificationTitle,
-        body: notificationBody,
-        icon: notificationIconUrl,
-        image: notificationIconUrl,
-      },
-      webpush: {
+
+    if (!auth || !projectId) {
+      throw new Error("Configuration Firebase manquante ou invalide.");
+    }
+
+    // 1. Génération du token d'accès OAuth2 à la volée
+    const client = await auth.getClient();
+    const tokenResponse = await client.getAccessToken();
+    const accessToken = tokenResponse.token;
+
+    if (!accessToken) {
+      throw new Error("Impossible de générer le jeton d'accès Firebase.");
+    }
+
+    // 2. Construction du payload de l'API REST v1 de Firebase Messaging
+    const fcmUrl = `https://fcm.googleapis.com/v1/projects/${projectId}/messages:send`;
+    
+    const fcmPayload = {
+      message: {
+        topic: "global_alerts", // Diffusé à tout le monde
         notification: {
-          icon: notificationIconUrl,
-          badge: notificationIconUrl,
+          title: notificationTitle,
+          body: notificationBody,
           image: notificationIconUrl,
         },
-      },
-      android: {
-        notification: {
-          icon: notificationIconUrl,
-          image: notificationIconUrl,
+        data: {
+          type: "citizen_alert",
+          alert_id: String(alertId),
+          alert_type: String(alertType),
+          city: String(alertCity || "Inconnue"),
         },
-      },
-      apns: {
-        fcmOptions: {
-          image: notificationIconUrl,
+        android: {
+          notification: {
+            icon: notificationIconUrl, // Doit correspondre à une ressource native ou URL selon ton setup client
+            image: notificationIconUrl,
+          },
         },
-      },
-      data: {
-        type: "citizen_alert",
-        alert_id: alertId,
-        alert_type: alertType,
-        city: alertCity || "Inconnue",
-      },
-      topic: "global_alerts", // Diffusé a tout le monde
+        webpush: {
+          notification: {
+            icon: notificationIconUrl,
+            image: notificationIconUrl,
+          },
+          headers: {
+            TTL: "86400", // Durée de vie de la notification (24h)
+          }
+        }
+      }
     };
 
-    const result = await messaging.send(message);
+    // 3. Envoi via une simple requête HTTP POST native
+    const responseFCM = await fetch(fcmUrl, {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(fcmPayload),
+    });
 
-    console.log("Notification d'alerte citoyenne envoyee avec succes au topic :", result);
+    const resultFCM = await responseFCM.json();
 
-    return new Response(JSON.stringify({ success: true, result }), {
+    if (!responseFCM.ok) {
+      console.error("Erreur renvoyée par l'API Firebase:", resultFCM);
+      return new Response(JSON.stringify({ error: resultFCM }), { status: 400, headers });
+    }
+
+    console.log("Notification d'alerte citoyenne envoyée avec succès via REST !");
+
+    return new Response(JSON.stringify({ success: true, result: resultFCM }), {
       status: 200,
       headers,
     });

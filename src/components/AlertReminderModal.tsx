@@ -53,12 +53,12 @@ export default function AlertReminderModal({
       <div className="bg-white rounded-lg shadow-2xl max-w-md w-full mx-4 overflow-hidden">
         {/* Header with icon */}
         <div className="bg-blue-50 border-b border-blue-200 p-4 flex items-center gap-3">
-          <Bell className="w-6 h-6 text-blue-600" />
+          <Bell className="w-6 h-6 text-[var(--color-accent)]" />
           <h2 className="text-lg font-bold text-blue-900">Relance hebdomadaire</h2>
           <button
             onClick={onClose}
             disabled={loading}
-            className="ml-auto text-blue-600 hover:text-blue-800 transition disabled:opacity-50"
+            className="ml-auto text-[var(--color-accent)] hover:text-blue-800 transition disabled:opacity-50"
           >
             <X className="w-5 h-5" />
           </button>
@@ -91,7 +91,7 @@ export default function AlertReminderModal({
           <button
             onClick={handleExtend}
             disabled={loading}
-            className="flex-1 px-4 py-2 text-white bg-blue-600 border border-blue-600 rounded-lg hover:bg-blue-700 transition font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex-1 px-4 py-2 text-white bg-[var(--color-accent)] border border-[var(--color-accent)] rounded-lg hover:bg-[var(--color-accent)] transition font-medium disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? 'Prolongement...' : 'Oui, prolonger'}
           </button>

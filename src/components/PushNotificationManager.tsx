@@ -42,7 +42,7 @@ export default function PushNotificationManager() {
         type="button"
         onClick={handleRequestPermission}
         disabled={isRequesting}
-        className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg w-full mt-4"
+        className="bg-[var(--color-accent)] hover:bg-[var(--color-accent)] text-white font-bold py-3 px-6 rounded-lg w-full mt-4"
       >
         {isRequesting ? "Activation en cours..." : "Générer le Token de Test"}
       </button>

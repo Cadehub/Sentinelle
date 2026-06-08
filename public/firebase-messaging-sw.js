@@ -13,44 +13,46 @@ firebase.initializeApp({
 const messaging = firebase.messaging();
 
 messaging.onBackgroundMessage((payload) => {
-  console.log('Received background message in service worker:', payload);
   const notificationTitle = payload.notification?.title || 'Notification Sentinelle';
   const notificationOptions = {
     body: payload.notification?.body || '',
-    icon: payload.notification?.image || '/favicon.ico',
+    icon: payload.notification?.image || 'https://res.cloudinary.com/droxtvmsy/image/upload/v1779060726/IMG-20260517-WA0007_rff0ko.png',
     data: payload.data || {}
   };
   self.registration.showNotification(notificationTitle, notificationOptions);
 });
 
 self.addEventListener('notificationclick', (event) => {
-  console.log('Notification clicked:', event.notification);
-  
   event.notification.close();
   
-  const data = event.notification.data;
+  const data = event.notification.data || {};
   let targetUrl = '/';
   
   if (data.type === 'private_message' && data.room_id) {
-    targetUrl = `/chats/${data.room_id}`;
+    targetUrl = `/discussions/${data.room_id}`;
   } else if (data.type === 'global_alert') {
     targetUrl = data.cta_url && data.cta_url.trim() ? data.cta_url : '/';
   } else if (data.type === 'citizen_alert' && data.alert_id) {
-    targetUrl = `/alerts/${data.alert_id}`;
+    targetUrl = `/alert/${data.alert_id}`;
   }
-  
-  console.log(`Navigation vers: ${targetUrl}`);
+  const normalizedTarget = new URL(targetUrl, self.location.origin);
   
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
-      for (let client of clientList) {
-        if (client.url === targetUrl && 'focus' in client) {
-          return client.focus();
+      for (const client of clientList) {
+        try {
+          const clientUrl = new URL(client.url);
+          if (clientUrl.pathname === normalizedTarget.pathname) {
+            if ('focus' in client) return client.focus();
+          }
+        } catch {}
+      }
+      for (const client of clientList) {
+        if ('focus' in client && 'navigate' in client) {
+          return (client as any).navigate(normalizedTarget.href).then(() => (client as any).focus?.());
         }
       }
-      if (clients.openWindow) {
-        return clients.openWindow(targetUrl);
-      }
+      if (clients.openWindow) return clients.openWindow(normalizedTarget.href);
     })
   );
 });

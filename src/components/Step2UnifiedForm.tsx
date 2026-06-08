@@ -218,7 +218,7 @@ export default function Step2UnifiedForm({ onBack, onSubmit, isSubmitting, submi
         <select
           value={details.category || ''}
           onChange={(e) => handleDetailsChange('category', e.target.value)}
-          className="w-full px-4 py-3 border border-[var(--border-color)] rounded-lg bg-[var(--bg-primary)] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full px-4 py-3 border border-[var(--border-color)] rounded-2xl bg-[var(--bg-input)] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]"
         >
           <option value="">Sélectionnez une catégorie</option>
           <option value="CNI">CNI (Carte d'Identité Nationale)</option>
@@ -238,7 +238,7 @@ export default function Step2UnifiedForm({ onBack, onSubmit, isSubmitting, submi
           value={details.full_name || ''}
           onChange={(e) => handleDetailsChange('full_name', e.target.value)}
           placeholder="Ex: Jean Dupont"
-          className="w-full px-4 py-3 border border-[var(--border-color)] rounded-lg bg-[var(--bg-primary)] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full px-4 py-3 border border-[var(--border-color)] rounded-2xl bg-[var(--bg-input)] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]"
         />
       </div>
 
@@ -251,7 +251,7 @@ export default function Step2UnifiedForm({ onBack, onSubmit, isSubmitting, submi
           value={details.document_number || ''}
           onChange={(e) => handleDetailsChange('document_number', e.target.value)}
           placeholder="Ex: 123456789"
-          className="w-full px-4 py-3 border border-[var(--border-color)] rounded-lg bg-[var(--bg-primary)] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full px-4 py-3 border border-[var(--border-color)] rounded-2xl bg-[var(--bg-input)] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]"
         />
       </div>
     </div>
@@ -268,7 +268,7 @@ export default function Step2UnifiedForm({ onBack, onSubmit, isSubmitting, submi
           value={details.full_name || ''}
           onChange={(e) => handleDetailsChange('full_name', e.target.value)}
           placeholder="Ex: Jean Dupont"
-          className="w-full px-4 py-3 border border-[var(--border-color)] rounded-lg bg-[var(--bg-primary)] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full px-4 py-3 border border-[var(--border-color)] rounded-2xl bg-[var(--bg-input)] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]"
         />
       </div>
 
@@ -284,7 +284,7 @@ export default function Step2UnifiedForm({ onBack, onSubmit, isSubmitting, submi
             placeholder="25"
             min="0"
             max="120"
-            className="w-full px-4 py-3 border border-[var(--border-color)] rounded-lg bg-[var(--bg-primary)] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-4 py-3 border border-[var(--border-color)] rounded-2xl bg-[var(--bg-input)] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]"
           />
         </div>
 
@@ -295,7 +295,7 @@ export default function Step2UnifiedForm({ onBack, onSubmit, isSubmitting, submi
           <select
             value={details.gender || ''}
             onChange={(e) => handleDetailsChange('gender', e.target.value)}
-            className="w-full px-4 py-3 border border-[var(--border-color)] rounded-lg bg-[var(--bg-primary)] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-4 py-3 border border-[var(--border-color)] rounded-2xl bg-[var(--bg-input)] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]"
           >
             <option value="">Sélectionnez</option>
             <option value="Homme">Homme</option>
@@ -314,7 +314,7 @@ export default function Step2UnifiedForm({ onBack, onSubmit, isSubmitting, submi
           onChange={(e) => handleDetailsChange('distinctive_marks', e.target.value)}
           placeholder="Ex: Cicatrice au bras droit, tatouage, lunettes..."
           rows={2}
-          className="w-full px-4 py-3 border border-[var(--border-color)] rounded-lg bg-[var(--bg-primary)] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full px-4 py-3 border border-[var(--border-color)] rounded-2xl bg-[var(--bg-input)] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]"
         />
       </div>
 
@@ -327,7 +327,7 @@ export default function Step2UnifiedForm({ onBack, onSubmit, isSubmitting, submi
           onChange={(e) => handleDetailsChange('clothing', e.target.value)}
           placeholder="Ex: T-shirt bleu, jean noir, chaussures blanches..."
           rows={2}
-          className="w-full px-4 py-3 border border-[var(--border-color)] rounded-lg bg-[var(--bg-primary)] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full px-4 py-3 border border-[var(--border-color)] rounded-2xl bg-[var(--bg-input)] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]"
         />
       </div>
     </div>
@@ -346,7 +346,7 @@ export default function Step2UnifiedForm({ onBack, onSubmit, isSubmitting, submi
             setSelectedSubCategory('')
             handleDetailsChange('category', '')
           }}
-          className="w-full px-4 py-3 border border-[var(--border-color)] rounded-lg bg-[var(--bg-primary)] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full px-4 py-3 border border-[var(--border-color)] rounded-2xl bg-[var(--bg-input)] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]"
         >
           <option value="">Sélectionnez une catégorie</option>
           {Object.keys(CATEGORY_MAPPING).map((category) => (
@@ -374,7 +374,7 @@ export default function Step2UnifiedForm({ onBack, onSubmit, isSubmitting, submi
             }
           }}
           disabled={!selectedCategory}
-          className="w-full px-4 py-3 border border-[var(--border-color)] rounded-lg bg-[var(--bg-primary)] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+          className="w-full px-4 py-3 border border-[var(--border-color)] rounded-2xl bg-[var(--bg-input)] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)] disabled:opacity-50"
         >
           <option value="">Sélectionnez une sous-catégorie</option>
           {selectedCategory && CATEGORY_MAPPING[selectedCategory]?.map((subCategory) => (
@@ -396,7 +396,7 @@ export default function Step2UnifiedForm({ onBack, onSubmit, isSubmitting, submi
             value={details.category || ''}
             onChange={(e) => handleDetailsChange('category', e.target.value)}
             placeholder="Ex: Sac à main, Montre, Clés, Téléphone..."
-            className="w-full px-4 py-3 border border-[var(--border-color)] rounded-lg bg-[var(--bg-primary)] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-4 py-3 border border-[var(--border-color)] rounded-2xl bg-[var(--bg-input)] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]"
           />
         </div>
       )}
@@ -410,7 +410,7 @@ export default function Step2UnifiedForm({ onBack, onSubmit, isSubmitting, submi
           value={details.brand || ''}
           onChange={(e) => handleDetailsChange('brand', e.target.value)}
           placeholder="Ex: Adidas, Apple, Samsung..."
-          className="w-full px-4 py-3 border border-[var(--border-color)] rounded-lg bg-[var(--bg-primary)] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full px-4 py-3 border border-[var(--border-color)] rounded-2xl bg-[var(--bg-input)] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]"
         />
       </div>
 
@@ -423,7 +423,7 @@ export default function Step2UnifiedForm({ onBack, onSubmit, isSubmitting, submi
           value={details.color || ''}
           onChange={(e) => handleDetailsChange('color', e.target.value)}
           placeholder="Ex: Noir, Bleu foncé, Rouge..."
-          className="w-full px-4 py-3 border border-[var(--border-color)] rounded-lg bg-[var(--bg-primary)] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full px-4 py-3 border border-[var(--border-color)] rounded-2xl bg-[var(--bg-input)] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]"
         />
       </div>
 
@@ -436,7 +436,7 @@ export default function Step2UnifiedForm({ onBack, onSubmit, isSubmitting, submi
           onChange={(e) => handleDetailsChange('distinctive_marks', e.target.value)}
           placeholder="Ex: Rayures, logos, écorchures, particularités..."
           rows={2}
-          className="w-full px-4 py-3 border border-[var(--border-color)] rounded-lg bg-[var(--bg-primary)] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full px-4 py-3 border border-[var(--border-color)] rounded-2xl bg-[var(--bg-input)] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]"
         />
       </div>
     </div>
@@ -453,7 +453,7 @@ export default function Step2UnifiedForm({ onBack, onSubmit, isSubmitting, submi
           value={details.species || ''}
           onChange={(e) => handleDetailsChange('species', e.target.value)}
           placeholder="Ex: Chien Berger allemand, Chat Siamois..."
-          className="w-full px-4 py-3 border border-[var(--border-color)] rounded-lg bg-[var(--bg-primary)] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full px-4 py-3 border border-[var(--border-color)] rounded-2xl bg-[var(--bg-input)] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]"
         />
       </div>
 
@@ -466,7 +466,7 @@ export default function Step2UnifiedForm({ onBack, onSubmit, isSubmitting, submi
           value={details.color || ''}
           onChange={(e) => handleDetailsChange('color', e.target.value)}
           placeholder="Ex: Noir et blanc, Roux, Gris..."
-          className="w-full px-4 py-3 border border-[var(--border-color)] rounded-lg bg-[var(--bg-primary)] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full px-4 py-3 border border-[var(--border-color)] rounded-2xl bg-[var(--bg-input)] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]"
         />
       </div>
 
@@ -479,7 +479,7 @@ export default function Step2UnifiedForm({ onBack, onSubmit, isSubmitting, submi
           value={details.name || ''}
           onChange={(e) => handleDetailsChange('name', e.target.value)}
           placeholder="Ex: Max, Bella, Minou..."
-          className="w-full px-4 py-3 border border-[var(--border-color)] rounded-lg bg-[var(--bg-primary)] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full px-4 py-3 border border-[var(--border-color)] rounded-2xl bg-[var(--bg-input)] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]"
         />
       </div>
 
@@ -492,7 +492,7 @@ export default function Step2UnifiedForm({ onBack, onSubmit, isSubmitting, submi
           onChange={(e) => handleDetailsChange('distinctive_marks', e.target.value)}
           placeholder="Ex: Collier bleu avec médaille, tatouage, puces électroniques..."
           rows={2}
-          className="w-full px-4 py-3 border border-[var(--border-color)] rounded-lg bg-[var(--bg-primary)] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full px-4 py-3 border border-[var(--border-color)] rounded-2xl bg-[var(--bg-input)] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]"
         />
       </div>
     </div>
@@ -507,7 +507,7 @@ export default function Step2UnifiedForm({ onBack, onSubmit, isSubmitting, submi
         <select
           value={details.vehicle_type || ''}
           onChange={(e) => handleDetailsChange('vehicle_type', e.target.value)}
-          className="w-full px-4 py-3 border border-[var(--border-color)] rounded-lg bg-[var(--bg-primary)] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full px-4 py-3 border border-[var(--border-color)] rounded-2xl bg-[var(--bg-input)] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]"
         >
           <option value="">Sélectionnez un type</option>
           <option value="Voiture">Voiture</option>
@@ -528,7 +528,7 @@ export default function Step2UnifiedForm({ onBack, onSubmit, isSubmitting, submi
             value={details.brand || ''}
             onChange={(e) => handleDetailsChange('brand', e.target.value)}
             placeholder="Ex: Toyota, BMW"
-            className="w-full px-4 py-3 border border-[var(--border-color)] rounded-lg bg-[var(--bg-primary)] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-4 py-3 border border-[var(--border-color)] rounded-2xl bg-[var(--bg-input)] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]"
           />
         </div>
 
@@ -541,7 +541,7 @@ export default function Step2UnifiedForm({ onBack, onSubmit, isSubmitting, submi
             value={details.model || ''}
             onChange={(e) => handleDetailsChange('model', e.target.value)}
             placeholder="Ex: Corolla, X3"
-            className="w-full px-4 py-3 border border-[var(--border-color)] rounded-lg bg-[var(--bg-primary)] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-4 py-3 border border-[var(--border-color)] rounded-2xl bg-[var(--bg-input)] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]"
           />
         </div>
       </div>
@@ -555,7 +555,7 @@ export default function Step2UnifiedForm({ onBack, onSubmit, isSubmitting, submi
           value={details.registration_number || ''}
           onChange={(e) => handleDetailsChange('registration_number', e.target.value)}
           placeholder="Ex: AA-123-BCD ou CM123ABC"
-          className="w-full px-4 py-3 border border-[var(--border-color)] rounded-lg bg-[var(--bg-primary)] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full px-4 py-3 border border-[var(--border-color)] rounded-2xl bg-[var(--bg-input)] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]"
         />
       </div>
 
@@ -568,7 +568,7 @@ export default function Step2UnifiedForm({ onBack, onSubmit, isSubmitting, submi
           value={details.color || ''}
           onChange={(e) => handleDetailsChange('color', e.target.value)}
           placeholder="Ex: Blanc, Noir, Bleu..."
-          className="w-full px-4 py-3 border border-[var(--border-color)] rounded-lg bg-[var(--bg-primary)] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full px-4 py-3 border border-[var(--border-color)] rounded-2xl bg-[var(--bg-input)] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]"
         />
       </div>
     </div>
@@ -694,16 +694,16 @@ export default function Step2UnifiedForm({ onBack, onSubmit, isSubmitting, submi
             onChange={(e) => handleLocationSearch(e.target.value)}
             onFocus={() => searchQuery && setShowSuggestions(true)}
             placeholder="Ex: Douala, Yaoundé, rue..."
-            className="w-full px-4 py-3 border border-[var(--border-color)] rounded-lg bg-[var(--bg-primary)] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full px-4 py-3 border border-[var(--border-color)] rounded-2xl bg-[var(--bg-input)] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]"
           />
 
           {suggestions.length > 0 && (
-            <ul className="absolute left-0 right-0 z-[9999] bg-white border border-gray-200 rounded-md shadow-xl max-h-60 overflow-y-auto mt-1 text-black">
+          <ul className="absolute left-0 right-0 z-[9999] bg-[var(--bg-card)] border border-[var(--border-color)] rounded-2xl shadow-2xl max-h-60 overflow-y-auto mt-2 text-[var(--text-primary)]">
               {suggestions.map((item: any) => (
                 <li
                   key={item.place_id}
                   onClick={() => handleSelectAddress(item)}
-                  className="p-3 hover:bg-gray-100 cursor-pointer text-sm border-b last:border-b-0"
+                className="p-3 hover:bg-[var(--bg-muted)] cursor-pointer text-sm border-b border-[var(--border-color)] last:border-b-0"
                 >
                   {item.display_name}
                 </li>
@@ -714,7 +714,7 @@ export default function Step2UnifiedForm({ onBack, onSubmit, isSubmitting, submi
       </div>
 
       {/* Map */}
-      <div className="mt-4 rounded-2xl overflow-hidden border border-[var(--border-color)]">
+      <div className="mt-4 rounded-[20px] overflow-hidden border border-[var(--border-color)] bg-[var(--bg-muted)]">
         <MapContainer center={mapCenter} zoom={12} scrollWheelZoom className="h-64 w-full">
           <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
           <MapViewUpdater center={mapCenter} />
@@ -731,7 +731,7 @@ export default function Step2UnifiedForm({ onBack, onSubmit, isSubmitting, submi
           <button
             type="button"
             onClick={() => setShowCalendar(!showCalendar)}
-            className="w-full px-4 py-3 border border-[var(--border-color)] rounded-lg bg-[var(--bg-primary)] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-blue-500 flex items-center gap-2 justify-between hover:border-[var(--text-primary)] transition-colors"
+            className="w-full px-4 py-3 border border-[var(--border-color)] rounded-2xl bg-[var(--bg-input)] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)] flex items-center gap-2 justify-between hover:border-[var(--border-color-strong)] transition-colors"
           >
             <span className={formData.date ? 'text-[var(--text-primary)]' : 'text-[var(--text-tertiary)]'}>
               {formData.date ? getFormattedDate(formData.date) : 'Sélectionner une date'}
@@ -741,12 +741,12 @@ export default function Step2UnifiedForm({ onBack, onSubmit, isSubmitting, submi
 
           {/* Calendar Popup */}
           {showCalendar && (
-            <div className="absolute top-full left-0 mt-2 bg-[var(--bg-card)] border border-[var(--border-color)] rounded-lg shadow-lg p-4 z-50 w-72">
+            <div className="absolute top-full left-0 mt-2 bg-[var(--bg-card)] border border-[var(--border-color)] rounded-2xl shadow-2xl p-4 z-50 w-72">
               <div className="flex items-center justify-between mb-4">
                 <button
                   type="button"
                   onClick={() => setCalendarMonth(new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() - 1))}
-                  className="p-2 hover:bg-[var(--bg-primary)] rounded transition"
+                  className="p-2 hover:bg-[var(--bg-muted)] rounded-xl transition"
                 >
                   ‹
                 </button>
@@ -756,7 +756,7 @@ export default function Step2UnifiedForm({ onBack, onSubmit, isSubmitting, submi
                 <button
                   type="button"
                   onClick={() => setCalendarMonth(new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() + 1))}
-                  className="p-2 hover:bg-[var(--bg-primary)] rounded transition"
+                  className="p-2 hover:bg-[var(--bg-muted)] rounded-xl transition"
                 >
                   ›
                 </button>
@@ -787,9 +787,9 @@ export default function Step2UnifiedForm({ onBack, onSubmit, isSubmitting, submi
                       onClick={() => selectDate(day)}
                       className={`py-2 rounded text-sm font-medium transition-all ${
                         isSelected
-                          ? 'bg-blue-600 text-white'
+                          ? 'bg-[var(--color-accent)] text-white'
                           : isToday
-                          ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 border border-blue-300 dark:border-blue-700'
+                          ? 'bg-blue-100 dark:bg-blue-900/30 text-[var(--color-accent)] border border-blue-300 dark:border-blue-700'
                           : 'hover:bg-[var(--bg-primary)] text-[var(--text-primary)]'
                       }`}
                     >
@@ -802,7 +802,7 @@ export default function Step2UnifiedForm({ onBack, onSubmit, isSubmitting, submi
               <button
                 type="button"
                 onClick={() => setShowCalendar(false)}
-                className="w-full mt-4 py-2 text-sm text-[var(--text-secondary)] hover:bg-[var(--bg-primary)] rounded transition"
+                  className="w-full mt-4 py-2 text-sm text-[var(--text-secondary)] hover:bg-[var(--bg-muted)] rounded-xl transition"
               >
                 Fermer
               </button>
@@ -810,6 +810,7 @@ export default function Step2UnifiedForm({ onBack, onSubmit, isSubmitting, submi
           )}
         </div>
       </div>
+
 
       {/* Description */}
       <div>
@@ -821,7 +822,7 @@ export default function Step2UnifiedForm({ onBack, onSubmit, isSubmitting, submi
           onChange={(e) => handleChange('description', e.target.value)}
           placeholder="Décrivez ce qui s'est passé, où, comment, les circonstances, etc."
           rows={5}
-          className="w-full px-4 py-3 border border-[var(--border-color)] rounded-lg bg-[var(--bg-primary)] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full px-4 py-3 border border-[var(--border-color)] rounded-2xl bg-[var(--bg-input)] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]"
         />
       </div>
 
@@ -848,7 +849,7 @@ export default function Step2UnifiedForm({ onBack, onSubmit, isSubmitting, submi
               onChange={(e) => handleChange('reward', e.target.value)}
               placeholder="0"
               min="0"
-              className="flex-1 px-4 py-3 border border-[var(--border-color)] rounded-lg bg-[var(--bg-primary)] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="flex-1 px-4 py-3 border border-[var(--border-color)] rounded-2xl bg-[var(--bg-input)] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]"
             />
             <span className="text-[var(--text-primary)] font-medium">XAF</span>
           </div>
@@ -865,9 +866,9 @@ export default function Step2UnifiedForm({ onBack, onSubmit, isSubmitting, submi
             type="button"
             onClick={() => fileInputRef.current?.click()}
             disabled={selectedImages.length >= 3}
-            className="w-full py-4 border-2 border-dashed border-[var(--border-color)] rounded-lg hover:border-blue-500 hover:bg-[var(--bg-card)] disabled:opacity-50 disabled:cursor-not-allowed transition flex flex-col items-center gap-2"
+            className="w-full py-4 border-2 border-dashed border-[var(--border-color)] rounded-lg hover:border-[var(--color-accent)] hover:bg-[var(--bg-card)] disabled:opacity-50 disabled:cursor-not-allowed transition flex flex-col items-center gap-2"
           >
-            <ImagePlus className="w-6 h-6 text-blue-500" />
+            <ImagePlus className="w-6 h-6 text-[var(--color-accent)]" />
             <span className="text-sm font-medium text-[var(--text-primary)]">
               {selectedImages.length >= 3 ? 'Limite de 3 images atteinte' : 'Cliquez pour ajouter des images'}
             </span>
@@ -915,7 +916,7 @@ export default function Step2UnifiedForm({ onBack, onSubmit, isSubmitting, submi
       <div className="flex gap-3 pt-6 border-t border-[var(--border-color)]">
         <button
           onClick={onBack}
-          className="flex-1 py-3 border border-[var(--border-color)] rounded-lg font-bold text-[var(--text-primary)] hover:bg-[var(--bg-card)] disabled:opacity-50 transition flex items-center justify-center gap-2"
+          className="ui-secondary-button flex-1 active:scale-95 transition-transform disabled:opacity-50"
         >
           <ChevronLeft size={20} />
           Retour
@@ -923,7 +924,7 @@ export default function Step2UnifiedForm({ onBack, onSubmit, isSubmitting, submi
         <button
           onClick={handleSubmit}
           disabled={isSubmitting || !canProceed()}
-          className="flex-1 py-3 bg-green-600 hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg font-bold flex items-center justify-center gap-2 transition"
+          className="ui-primary-button flex-1 active:scale-95 transition-transform disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isSubmitting ? 'Traitement...' : submitLabel}
           <ChevronRight size={20} />

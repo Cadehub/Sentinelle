@@ -1,6 +1,14 @@
 import { X, Camera } from "lucide-react";
 import { useState, useRef } from "react";
 
+const CATEGORY_MAPPING: Record<string, string[]> = {
+  "Documents": ["Carte Nationale d'Identité (CNI)", "Passeport", "Permis de conduire", "Acte de naissance", "Diplôme / Attestation", "Carte d'étudiant"],
+  "Électronique": ["Téléphone portable / Smartphone", "Ordinateur portable", "Tablette", "Écouteurs / Casque", "Powerbank / Chargeur"],
+  "Moyens de transport": ["Clé de voiture", "Clé de moto", "Documents de bord (Carte grise, Assurance)", "Vélo"],
+  "Effets personnels": ["Portefeuille", "Sac à main / Sac à dos", "Trousseau de clés (Maison)", "Bijoux / Montre", "Lunettes"],
+  "Argent & Cartes": ["Numéraire / Cash", "Carte bancaire (Visa, Mastercard)", "Carte de retrait locale"],
+};
+
 interface EditAlertModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -19,7 +27,10 @@ export default function EditAlertModal({
   const [formData, setFormData] = useState({
     title: alert?.title || "",
     description: alert?.description || "",
-    type: alert?.type || "",
+    main_type: alert?.main_type || alert?.type || "",
+    type: alert?.type || alert?.main_type || "",
+    sub_type: alert?.sub_type || "",
+    item_category: alert?.item_category || "",
     city: alert?.city || "",
     neighborhood: alert?.neighborhood || "",
     contact: alert?.contact || "",
@@ -40,6 +51,7 @@ export default function EditAlertModal({
     setFormData((prev) => ({
       ...prev,
       [name]: value,
+      ...(name === "main_type" ? { type: value } : {}),
     }));
   };
 
@@ -76,6 +88,10 @@ export default function EditAlertModal({
       const payload: any = {
         ...formData,
         id: alert.id,
+        type: formData.main_type || formData.type,
+        main_type: formData.main_type || formData.type,
+        sub_type: formData.sub_type || null,
+        item_category: formData.item_category || null,
       };
 
       // Compress new images if any
@@ -184,21 +200,18 @@ export default function EditAlertModal({
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-xs font-bold uppercase tracking-widest mb-2 text-[var(--text-secondary)]">
-                  Type
+                  Statut principal
                 </label>
                 <select
-                  name="type"
-                  value={formData.type}
+                  name="main_type"
+                  value={formData.main_type}
                   onChange={handleChange}
                   required
                   className="w-full px-4 py-3 bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-xl text-sm focus:outline-none focus:border-[var(--text-primary)] transition-colors"
                 >
                   <option value="">Sélectionner...</option>
-                  <option value="Urgence">Urgence</option>
-                  <option value="Agression">Agression</option>
-                  <option value="Vol">Vol</option>
-                  <option value="Accident">Accident</option>
-                  <option value="Autre">Autre</option>
+                  <option value="lost">Perdu</option>
+                  <option value="found">Trouvé</option>
                 </select>
               </div>
               <div>
@@ -216,6 +229,63 @@ export default function EditAlertModal({
                 </select>
               </div>
             </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-widest mb-2 text-[var(--text-secondary)]">
+                  Catégorie
+                </label>
+                <select
+                  name="sub_type"
+                  value={formData.sub_type}
+                  onChange={handleChange}
+                  className="w-full px-4 py-3 bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-xl text-sm focus:outline-none focus:border-[var(--text-primary)] transition-colors"
+                >
+                  <option value="">Sélectionner...</option>
+                  <option value="document">Document</option>
+                  <option value="object">Objet</option>
+                  <option value="person">Personne</option>
+                  <option value="vehicle">Véhicule</option>
+                  <option value="animal">Animal</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-widest mb-2 text-[var(--text-secondary)]">
+                  Sous-catégorie
+                </label>
+                <input
+                  type="text"
+                  name="item_category"
+                  value={formData.item_category}
+                  onChange={handleChange}
+                  className="w-full px-4 py-3 bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-xl text-sm focus:outline-none focus:border-[var(--text-primary)] transition-colors"
+                  placeholder="Ex: Téléphone, Portefeuille, Chien..."
+                />
+              </div>
+            </div>
+
+            {(formData.sub_type === 'document' || formData.sub_type === 'object') && (
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-widest mb-2 text-[var(--text-secondary)]">
+                  Choix de catégorie
+                </label>
+                <select
+                  value={formData.item_category}
+                  onChange={handleChange}
+                  name="item_category"
+                  className="w-full px-4 py-3 bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-xl text-sm focus:outline-none focus:border-[var(--text-primary)] transition-colors"
+                >
+                  <option value="">Sélectionner une catégorie</option>
+                  {Object.entries(CATEGORY_MAPPING).map(([group, items]) => (
+                    <optgroup key={group} label={group}>
+                      {items.map((item) => (
+                        <option key={item} value={item}>{item}</option>
+                      ))}
+                    </optgroup>
+                  ))}
+                </select>
+              </div>
+            )}
 
             {/* City and Neighborhood */}
             <div className="grid grid-cols-2 gap-4">
@@ -338,7 +408,7 @@ export default function EditAlertModal({
               <button
                 type="submit"
                 disabled={loading}
-                className="flex-1 h-12 rounded-full font-semibold uppercase tracking-widest text-xs bg-blue-500/10 text-blue-500 border border-blue-500/20 hover:bg-blue-500 hover:text-white transition-all active:scale-95 disabled:opacity-50"
+                className="flex-1 h-12 rounded-full font-semibold uppercase tracking-widest text-xs bg-[var(--color-accent)]/10 text-[var(--color-accent)] border border-[var(--color-accent)]/20 hover:bg-[var(--color-accent)] hover:text-white transition-all active:scale-95 disabled:opacity-50"
               >
                 {loading ? "Sauvegarde..." : "Mettre à jour"}
               </button>

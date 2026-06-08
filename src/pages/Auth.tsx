@@ -40,19 +40,19 @@ export default function Auth() {
   };
 
   return (
-    <div className="max-w-md mx-auto py-12 animate-in fade-in zoom-in-95 duration-500">
-      <Link to="/" className="inline-flex items-center gap-2 text-sm font-semibold uppercase tracking-widest text-[var(--text-secondary)] hover:text-[var(--text-primary)] active:scale-95 mb-8 transition-all">
+    <div className="max-w-md mx-auto py-8 sm:py-10 animate-in fade-in zoom-in-95 duration-500">
+      <Link to="/" className="inline-flex items-center gap-2 text-sm font-semibold text-[var(--text-secondary)] hover:text-[var(--text-primary)] active:scale-95 mb-6 transition-transform">
         <ArrowLeft size={16} /> Retour
       </Link>
 
-      <div className="bg-[var(--bg-card)] border border-[var(--border-color-strong)] rounded-[32px] p-8 shadow-xl flex flex-col items-center">
+      <div className="ui-card p-7 sm:p-8 flex flex-col items-center">
         <img 
           src="https://res.cloudinary.com/droxtvmsy/image/upload/v1779123733/1779123400829_cjh9le.png" 
           alt="Sentinelle Logo" 
-          className="w-32 h-32 object-contain mb-8" 
+          className="w-28 h-28 object-contain mb-7" 
         />
 
-        <h1 className="text-2xl font-light italic font-serif tracking-tight mb-2 text-center w-full">
+        <h1 className="text-2xl font-bold tracking-tight mb-2 text-center w-full">
           {isLogin ? "Connexion" : "Inscription"}
         </h1>
         <p className="text-[var(--text-secondary)] text-sm mb-8 text-center w-full">
@@ -74,13 +74,13 @@ export default function Auth() {
 
         <form onSubmit={handleSubmit} className="space-y-6 w-full">
           <div className="space-y-3">
-            <label className="text-[11px] font-bold uppercase tracking-widest text-[var(--text-secondary)]">
+            <label className="text-sm font-semibold text-[var(--text-secondary)]">
               Email
             </label>
             <input
               required
               type="email"
-              className="w-full bg-[var(--bg-primary)] border border-[var(--border-color-strong)] rounded-[16px] p-4 text-sm focus:outline-none focus:border-[var(--text-primary)] transition-colors placeholder:text-[var(--text-tertiary)]"
+              className="w-full bg-[var(--bg-input)] border border-[var(--border-color)] rounded-2xl p-4 text-sm focus:outline-none focus:border-[var(--color-accent)] focus:ring-2 focus:ring-[var(--color-accent)]/20 transition-colors placeholder:text-[var(--text-tertiary)]"
               placeholder="votre@email.com"
               value={email}
               onChange={e => setEmail(e.target.value)}
@@ -88,14 +88,14 @@ export default function Auth() {
           </div>
 
           <div className="space-y-3">
-            <label className="text-[11px] font-bold uppercase tracking-widest text-[var(--text-secondary)]">
+            <label className="text-sm font-semibold text-[var(--text-secondary)]">
               Mot de passe
             </label>
             <div className="relative">
               <input
                 required
                 type={showPassword ? "text" : "password"}
-                className="w-full bg-[var(--bg-primary)] border border-[var(--border-color-strong)] rounded-[16px] p-4 pr-12 text-sm focus:outline-none focus:border-[var(--text-primary)] transition-colors placeholder:text-[var(--text-tertiary)]"
+                className="w-full bg-[var(--bg-input)] border border-[var(--border-color)] rounded-2xl p-4 pr-12 text-sm focus:outline-none focus:border-[var(--color-accent)] focus:ring-2 focus:ring-[var(--color-accent)]/20 transition-colors placeholder:text-[var(--text-tertiary)]"
                 placeholder="••••••••"
                 value={password}
                 onChange={e => setPassword(e.target.value)}
@@ -116,7 +116,7 @@ export default function Auth() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-[var(--text-primary)] text-[var(--bg-primary)] h-14 rounded-full flex items-center justify-center gap-2 font-bold uppercase tracking-widest hover:bg-[var(--text-primary)]/90 transition-transform active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100 text-[11px]"
+            className="ui-primary-button w-full active:scale-95 transition-transform disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? <Loader2 className="animate-spin" size={20} /> : (isLogin ? "Se connecter" : "S'inscrire")}
           </button>

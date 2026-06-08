@@ -152,13 +152,20 @@ export default function AlertDetails() {
         throw new Error("Non authentifié");
       }
 
-      const { id, title, description, type, city, neighborhood, duration_days, status, newImages } = formData;
+      const { id, title, description, type, main_type, sub_type, item_category, city, neighborhood, duration_days, status, newImages } = formData;
 
       // Préparer les données à mettre à jour
       const updateData: any = {};
       if (title) updateData.title = title;
       if (description) updateData.description = description;
-      if (type) updateData.type = type;
+      if (main_type) {
+        updateData.main_type = main_type;
+        updateData.type = main_type;
+      } else if (type) {
+        updateData.type = type;
+      }
+      if (sub_type) updateData.sub_type = sub_type;
+      if (item_category) updateData.item_category = item_category;
       if (city) updateData.city = city;
       if (neighborhood) updateData.neighborhood = neighborhood;
       if (status) updateData.status = status;
@@ -467,7 +474,7 @@ export default function AlertDetails() {
 
   return (
     <div className="max-w-3xl mx-auto py-8">
-      <Link to="/" className="inline-flex items-center gap-2 text-sm font-semibold uppercase tracking-widest text-[var(--text-secondary)] hover:text-[var(--text-primary)] mb-8 transition-all active:scale-95">
+      <Link to="/" className="inline-flex items-center gap-2 text-sm font-semibold text-[var(--text-secondary)] hover:text-[var(--text-primary)] mb-8 transition-transform active:scale-95">
         <ArrowLeft size={16} /> Retour au flux
       </Link>
 
@@ -484,9 +491,9 @@ export default function AlertDetails() {
       )}
 
       <div className={cn(
-        "bg-[var(--bg-card)] border border-[var(--border-color-strong)] overflow-hidden rounded-[32px] animate-in fade-in zoom-in-95 duration-500",
-        isCritical && "shadow-xl border-red-500/30",
-        alert.status === 'résolu' && "opacity-50 grayscale pointer-events-none"
+        "ui-card overflow-hidden animate-in fade-in zoom-in-95 duration-500",
+        isCritical && "border-red-500/25",
+        alert.status === 'résolu' && "opacity-60 grayscale pointer-events-none"
       )}>
         {mainImage && (
           <div className="w-full bg-[var(--bg-primary)]">
@@ -534,27 +541,27 @@ export default function AlertDetails() {
           </div>
         )}
 
-        <div className="p-8 md:p-12">
+        <div className="p-6 sm:p-8 md:p-10">
           <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
             <span className={cn(
-              "px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest border",
-              isCritical ? "text-red-500 border-red-500/30 bg-red-500/10" : "text-[var(--text-primary)] border-[var(--border-color)] bg-[var(--bg-primary)]"
+              "px-4 py-1.5 rounded-full text-xs font-semibold border",
+              isCritical ? "text-red-600 border-red-500/20 bg-red-500/10" : "text-[var(--text-secondary)] border-[var(--border-color)] bg-[var(--bg-muted)]"
             )}>
               {alert.type}
             </span>
-            <div className="flex items-center gap-2 text-[var(--text-secondary)] text-xs font-mono uppercase tracking-widest opacity-80">
+            <div className="flex items-center gap-2 text-[var(--text-secondary)] text-xs opacity-80">
               <Clock size={14} />
               <Countdown expiresAt={alert.expires_at} />
             </div>
           </div>
 
-          <h1 className="text-4xl md:text-5xl font-light italic font-serif tracking-tight mb-8 leading-[1.1]">
+          <h1 className="text-2xl sm:text-4xl md:text-5xl font-bold tracking-tight mb-6 leading-tight">
             {alert.title}
           </h1>
 
-          <div className="flex items-center gap-3 text-sm font-mono border-b border-[var(--border-color)] pb-8 mb-8 opacity-70">
+          <div className="flex items-center gap-2 text-sm border-b border-[var(--border-color)] pb-6 mb-6 text-[var(--text-secondary)]">
             <MapPin size={18} />
-            <span className="uppercase tracking-widest">{alert.neighborhood}, {alert.city}</span>
+            <span>{alert.neighborhood}, {alert.city}</span>
           </div>
 
           <div className="prose prose-lg dark:prose-invert max-w-none text-[var(--text-secondary)] leading-relaxed mb-12">
@@ -566,7 +573,7 @@ export default function AlertDetails() {
               <button
                 onClick={handleStartChat}
                 disabled={roomLoading}
-                className="w-full h-14 rounded-full flex items-center justify-center gap-3 font-semibold uppercase tracking-widest text-xs bg-blue-500 text-white hover:bg-blue-600 transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full h-14 rounded-full flex items-center justify-center gap-3 font-semibold uppercase tracking-widest text-xs bg-[var(--color-accent)] text-white hover:bg-[var(--color-accent-light)] transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {roomLoading ? (
                   <>
@@ -591,7 +598,7 @@ export default function AlertDetails() {
               <button
                 onClick={handleShareStory}
                 disabled={generatingVisual}
-                className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-blue-500 hover:text-blue-600 transition-all active:scale-95 disabled:active:scale-100 disabled:opacity-50"
+                className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-[var(--color-accent)] hover:text-[var(--color-accent-light)] transition-all active:scale-95 disabled:active:scale-100 disabled:opacity-50"
               >
                 {generatingVisual ? "Génération..." : (
                   <>
@@ -606,7 +613,7 @@ export default function AlertDetails() {
               <div className="flex gap-2 pt-4 border-t border-[var(--border-color)]">
                 <button
                   onClick={() => setIsEditModalOpen(true)}
-                  className="flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-full text-xs font-bold uppercase tracking-widest bg-blue-500/10 text-blue-500 border border-blue-500/20 hover:bg-blue-500 hover:text-white transition-all active:scale-95 disabled:opacity-50"
+                  className="flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-full text-xs font-bold uppercase tracking-widest bg-[var(--color-accent)]/10 text-[var(--color-accent)] border border-[var(--color-accent)]/20 hover:bg-[var(--color-accent)] hover:text-white transition-all active:scale-95 disabled:opacity-50"
                   disabled={isUpdating || isDeleting}
                 >
                   <Edit size={14} />

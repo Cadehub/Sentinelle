@@ -15,6 +15,7 @@ import {
   X,
   Shield,
   Plus,
+  Home,
 } from 'lucide-react'
 
 interface Alert {
@@ -612,10 +613,18 @@ export default function AdminDashboard() {
     <div className="min-h-screen bg-[var(--bg-primary)] flex flex-col md:flex-row">
       {/* MOBILE HEADER */}
       <div className="md:hidden flex items-center justify-between p-4 border-b border-[var(--border-color)] bg-[var(--bg-card)]">
+        <button
+          onClick={() => navigate('/')}
+          className="p-2 hover:bg-[var(--bg-primary)] rounded-lg transition text-[var(--text-secondary)]"
+          title="Retour à la plateforme"
+        >
+          <Home className="w-6 h-6" />
+        </button>
         <h1 className="text-xl font-bold text-[var(--text-primary)]">Admin Panel</h1>
         <button
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
           className="p-2 hover:bg-[var(--bg-primary)] rounded-lg transition"
+          title="Menu"
         >
           {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
         </button>
@@ -644,7 +653,7 @@ export default function AdminDashboard() {
               }}
               className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition ${
                 activeTab === 'moderation'
-                  ? 'bg-blue-600 text-white'
+                  ? 'bg-[var(--color-accent)] text-white'
                   : 'text-[var(--text-secondary)] hover:bg-[var(--bg-primary)]'
               }`}
             >
@@ -660,7 +669,7 @@ export default function AdminDashboard() {
               }}
               className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition ${
                 activeTab === 'users'
-                  ? 'bg-blue-600 text-white'
+                  ? 'bg-[var(--color-accent)] text-white'
                   : 'text-[var(--text-secondary)] hover:bg-[var(--bg-primary)]'
               }`}
             >
@@ -676,7 +685,7 @@ export default function AdminDashboard() {
               }}
               className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition ${
                 activeTab === 'broadcast'
-                  ? 'bg-blue-600 text-white'
+                  ? 'bg-[var(--color-accent)] text-white'
                   : 'text-[var(--text-secondary)] hover:bg-[var(--bg-primary)]'
               }`}
             >
@@ -692,7 +701,7 @@ export default function AdminDashboard() {
               }}
               className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition ${
                 activeTab === 'forbidden_words'
-                  ? 'bg-blue-600 text-white'
+                  ? 'bg-[var(--color-accent)] text-white'
                   : 'text-[var(--text-secondary)] hover:bg-[var(--bg-primary)]'
               }`}
             >
@@ -701,6 +710,17 @@ export default function AdminDashboard() {
               {activeTab === 'forbidden_words' && <ChevronRight className="w-4 h-4 ml-auto" />}
             </button>
           </nav>
+
+          <button
+            onClick={() => {
+              navigate('/')
+              setIsMobileMenuOpen(false)
+            }}
+            className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-[var(--text-secondary)] hover:bg-[var(--bg-primary)] transition mb-2"
+          >
+            <Home className="w-5 h-5" />
+            <span>Retour plateforme</span>
+          </button>
 
           <button
             onClick={() => {
@@ -935,7 +955,7 @@ export default function AdminDashboard() {
                       value={broadcastMessage}
                       onChange={(e) => setBroadcastMessage(e.target.value)}
                       placeholder="Enter the announcement message (will be automatically translated to English)..."
-                      className="w-full p-3 md:p-4 border border-[var(--border-color)] bg-[var(--bg-primary)] text-[var(--text-primary)] rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 resize-none text-sm md:text-base"
+                      className="w-full p-3 md:p-4 border border-[var(--border-color)] bg-[var(--bg-primary)] text-[var(--text-primary)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)] dark:focus:ring-[var(--color-accent-lighter)] resize-none text-sm md:text-base"
                       rows={5}
                       disabled={isSubmittingBroadcast}
                     />
@@ -950,7 +970,7 @@ export default function AdminDashboard() {
                       value={broadcastDuration}
                       onChange={(e) => setBroadcastDuration(e.target.value as '24' | '48')}
                       disabled={isSubmittingBroadcast}
-                      className="w-full px-4 py-3 border border-[var(--border-color)] bg-[var(--bg-primary)] text-[var(--text-primary)] rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 text-sm md:text-base"
+                      className="w-full px-4 py-3 border border-[var(--border-color)] bg-[var(--bg-primary)] text-[var(--text-primary)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)] dark:focus:ring-[var(--color-accent-lighter)] text-sm md:text-base"
                     >
                       <option value="24">24 Hours</option>
                       <option value="48">48 Hours</option>
@@ -968,7 +988,7 @@ export default function AdminDashboard() {
                       onChange={(e) => setBroadcastCtaText(e.target.value)}
                       placeholder="e.g., 'Learn More', 'Update Now', 'View Details'"
                       disabled={isSubmittingBroadcast}
-                      className="w-full px-4 py-3 border border-[var(--border-color)] bg-[var(--bg-primary)] text-[var(--text-primary)] rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 text-sm md:text-base"
+                      className="w-full px-4 py-3 border border-[var(--border-color)] bg-[var(--bg-primary)] text-[var(--text-primary)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)] dark:focus:ring-[var(--color-accent-lighter)] text-sm md:text-base"
                     />
                   </div>
 
@@ -983,14 +1003,14 @@ export default function AdminDashboard() {
                       onChange={(e) => setBroadcastCtaUrl(e.target.value)}
                       placeholder="e.g., https://example.com"
                       disabled={isSubmittingBroadcast}
-                      className="w-full px-4 py-3 border border-[var(--border-color)] bg-[var(--bg-primary)] text-[var(--text-primary)] rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 text-sm md:text-base"
+                      className="w-full px-4 py-3 border border-[var(--border-color)] bg-[var(--bg-primary)] text-[var(--text-primary)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)] dark:focus:ring-[var(--color-accent-lighter)] text-sm md:text-base"
                     />
                   </div>
 
                   <button
                     type="submit"
                     disabled={isSubmittingBroadcast || !broadcastMessage.trim()}
-                    className="w-full flex items-center justify-center gap-2 px-6 py-3 md:py-4 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg font-bold text-base md:text-lg transition"
+                    className="w-full flex items-center justify-center gap-2 px-6 py-3 md:py-4 bg-[var(--color-accent)] hover:bg-[var(--color-accent)] disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg font-bold text-base md:text-lg transition"
                   >
                     <Megaphone className="w-5 h-5" />
                     {isSubmittingBroadcast ? 'Creating...' : 'Create Announcement'}
@@ -1098,7 +1118,7 @@ export default function AdminDashboard() {
                       onChange={(e) => setNewWord(e.target.value)}
                       placeholder="e.g., 'western union', 'bitcoin'"
                       disabled={isAddingWord}
-                      className="w-full px-4 py-3 border border-[var(--border-color)] bg-[var(--bg-primary)] text-[var(--text-primary)] rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 text-sm md:text-base"
+                      className="w-full px-4 py-3 border border-[var(--border-color)] bg-[var(--bg-primary)] text-[var(--text-primary)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)] dark:focus:ring-[var(--color-accent-lighter)] text-sm md:text-base"
                     />
                   </div>
 
@@ -1110,7 +1130,7 @@ export default function AdminDashboard() {
                       value={newWordCategory}
                       onChange={(e) => setNewWordCategory(e.target.value)}
                       disabled={isAddingWord}
-                      className="w-full px-4 py-3 border border-[var(--border-color)] bg-[var(--bg-primary)] text-[var(--text-primary)] rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 text-sm md:text-base"
+                      className="w-full px-4 py-3 border border-[var(--border-color)] bg-[var(--bg-primary)] text-[var(--text-primary)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)] dark:focus:ring-[var(--color-accent-lighter)] text-sm md:text-base"
                     >
                       <option value="general">General</option>
                       <option value="financial">Financial Scam</option>
@@ -1132,7 +1152,7 @@ export default function AdminDashboard() {
                     onChange={(e) => setNewWordReason(e.target.value)}
                     placeholder="e.g., 'High fraud risk', 'Phishing indicator'"
                     disabled={isAddingWord}
-                    className="w-full px-4 py-3 border border-[var(--border-color)] bg-[var(--bg-primary)] text-[var(--text-primary)] rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 text-sm md:text-base"
+                    className="w-full px-4 py-3 border border-[var(--border-color)] bg-[var(--bg-primary)] text-[var(--text-primary)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)] dark:focus:ring-[var(--color-accent-lighter)] text-sm md:text-base"
                   />
                 </div>
 
@@ -1177,7 +1197,7 @@ export default function AdminDashboard() {
                               </code>
                             </td>
                             <td className="hidden sm:table-cell px-3 md:px-6 py-4 text-[var(--text-secondary)] text-xs md:text-sm">
-                              <span className="inline-block bg-blue-500/20 text-blue-600 dark:text-blue-400 px-2 py-1 rounded text-xs">
+                              <span className="inline-block bg-[var(--color-accent)]/20 text-[var(--color-accent)] dark:text-blue-400 px-2 py-1 rounded text-xs">
                                 {word.category}
                               </span>
                             </td>

@@ -3,40 +3,17 @@ import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import { LatLngExpression } from 'leaflet';
 import L from 'leaflet';
 import { Link } from 'react-router';
-import { MapPin, AlertTriangle, Clock } from 'lucide-react';
+import { MapPin, AlertTriangle, Clock, FileText, Package, Users, Car, Bone, Search, Gift } from 'lucide-react';
 import { formatDistanceToNow, parseISO } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import markerIcon from 'leaflet/dist/images/marker-icon.png';
 import markerShadow from 'leaflet/dist/images/marker-shadow.png';
-import markerIconRetina from 'leaflet/dist/images/marker-icon-2x.png';
-
-// Fix Leaflet marker icons
-const DefaultIcon = L.icon({
-  iconUrl: markerIcon,
-  iconRetinaUrl: markerIconRetina,
-  shadowUrl: markerShadow,
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-  popupAnchor: [1, -34],
-  shadowSize: [41, 41],
-});
-
-L.Marker.prototype.setIcon(DefaultIcon);
-
-// Custom critical alert icon (red)
-const CriticalIcon = L.icon({
-  iconUrl: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjUiIGhlaWdodD0iNDEiIHZpZXdCb3g9IjAgMCAyNSA0MSIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPFBDREFUBKCKX3ZFUkRFUEY+PGJhZGdlIGNsYXNzPSJmZWF0dXJlIj4KPVBDREFURSA+PEJhdHRlcnlUZXN0SW5kZXg+PENSQUNLIFdJRFRIPSI1IiBkaW89MiIgUk9CT1RTIEludGFudGlhZF9Bc3NlbWJsYXRlZD0iQ3JhY2sgb2YgMiI+PC9DUkFDSz4KPGENBVKFHSUNSIQ==',
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-  popupAnchor: [1, -34],
-  shadowSize: [41, 41],
-});
 
 type Alert = {
   id: string;
   title: string;
   description: string;
   type: string;
+  sub_type?: string | null;
   city: string;
   neighborhood: string;
   latitude?: number;
@@ -50,6 +27,128 @@ type Alert = {
 type AlertsMapProps = {
   alerts: Alert[];
   onAlertClick?: (alertId: string) => void;
+};
+
+const isCriticalAlert = (alert: Alert) =>
+  alert.type?.toLowerCase().includes('urgence') ||
+  alert.type?.toLowerCase().includes('agression') ||
+  alert.type?.toLowerCase().includes('kidnapping') ||
+  alert.type?.toLowerCase().includes('drame') ||
+  alert.type?.toLowerCase().includes('critique');
+
+const escapeHtml = (s: string) =>
+  s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+
+const iconToSvg = (
+  icon: any,
+  {
+    size,
+    strokeWidth,
+  }: {
+    size: number;
+    strokeWidth: number;
+  }
+) => {
+  const iconNode: Array<[string, Record<string, string>]> | undefined =
+    icon?.iconNode || icon?.__iconNode;
+
+  if (!iconNode) {
+    return '';
+  }
+
+  const svgAttrs: Record<string, string> = {
+    xmlns: 'http://www.w3.org/2000/svg',
+    width: String(size),
+    height: String(size),
+    viewBox: '0 0 24 24',
+    fill: 'none',
+    stroke: 'currentColor',
+    'stroke-width': String(strokeWidth),
+    'stroke-linecap': 'round',
+    'stroke-linejoin': 'round',
+    'aria-hidden': 'true',
+    focusable: 'false',
+  };
+
+  const attrsToString = (attrs: Record<string, string>) =>
+    Object.entries(attrs)
+      .map(([k, v]) => `${k}="${escapeHtml(String(v))}"`)
+      .join(' ');
+
+  const children = iconNode
+    .map(([tag, attrs]) => `<${tag} ${attrsToString(attrs)} />`)
+    .join('');
+
+  return `<svg ${attrsToString(svgAttrs)}>${children}</svg>`;
+};
+
+const getMarkerIcon = (alert: Alert) => {
+  const sub = (alert.sub_type || '').toLowerCase();
+  const subTypeIcon =
+    sub === 'document' ? FileText :
+    sub === 'object' ? Package :
+    sub === 'person' ? Users :
+    sub === 'vehicle' ? Car :
+    sub === 'animal' ? Bone :
+    MapPin;
+
+  const subTypeColor =
+    sub === 'document' ? 'var(--color-icon-document)' :
+    sub === 'object' ? 'var(--color-icon-object)' :
+    sub === 'person' ? 'var(--color-icon-person)' :
+    sub === 'vehicle' ? 'var(--color-icon-vehicle)' :
+    sub === 'animal' ? 'var(--color-icon-object)' :
+    'rgba(255,255,255,0.95)';
+
+  const mainType = (alert.type || '').toLowerCase();
+  const badgeIcon =
+    mainType === 'found' ? Gift :
+    mainType === 'lost' ? Search :
+    null;
+  const bg =
+    mainType === 'found' ? 'rgba(16,185,129,0.95)' :
+    mainType === 'lost' ? 'rgba(59,130,246,0.95)' :
+    'rgba(15,23,42,0.90)';
+
+  const ring = isCriticalAlert(alert) ? '0 0 0 4px rgba(239,68,68,0.35)' : '0 0 0 2px rgba(255,255,255,0.75)';
+  const iconSvg = iconToSvg(subTypeIcon, { size: 20, strokeWidth: 2 });
+  const badgeSvg = badgeIcon ? iconToSvg(badgeIcon, { size: 12, strokeWidth: 2.5 }) : '';
+
+  const html = `
+    <div style="position:relative; width:40px; height:40px; transform:translateY(-2px);">
+      <div style="
+        width:40px;height:40px;border-radius:9999px;
+        display:flex;align-items:center;justify-content:center;
+        color:${escapeHtml(subTypeColor)};
+        background:${escapeHtml(bg)};
+        box-shadow:${escapeHtml(ring)}, 0 10px 24px rgba(0,0,0,0.20);
+      ">${iconSvg}</div>
+      ${
+        badgeSvg
+          ? `<div style="
+              position:absolute; right:-2px; bottom:-2px;
+              width:18px; height:18px; border-radius:9999px;
+              display:flex; align-items:center; justify-content:center;
+              background:rgba(15,23,42,0.95);
+              border:2px solid rgba(255,255,255,0.85);
+              color:rgba(255,255,255,0.95);
+              box-shadow:0 6px 14px rgba(0,0,0,0.25);
+            ">${badgeSvg}</div>`
+          : ''
+      }
+    </div>
+  `;
+
+  return L.divIcon({
+    html,
+    className: '',
+    iconSize: [40, 40],
+    iconAnchor: [20, 40],
+    popupAnchor: [0, -36],
+    shadowUrl: markerShadow,
+    shadowSize: [41, 41],
+    shadowAnchor: [12, 41],
+  } as any);
 };
 
 // Component to fit bounds when alerts change
@@ -89,18 +188,13 @@ export default function AlertsMap({ alerts, onAlertClick }: AlertsMapProps) {
   );
 
   // Detect critical alerts
-  const isCritical = (alert: Alert) =>
-    alert.type?.toLowerCase().includes('urgence') ||
-    alert.type?.toLowerCase().includes('agression') ||
-    alert.type?.toLowerCase().includes('kidnapping') ||
-    alert.type?.toLowerCase().includes('drame') ||
-    alert.type?.toLowerCase().includes('critique');
+  const isCritical = isCriticalAlert;
 
   // Default center on Cameroon if no valid alerts
   const defaultCenter: LatLngExpression = [3.8667, 11.5167];
 
   return (
-    <div className="relative rounded-[24px] overflow-hidden border border-[var(--border-color)] bg-[var(--bg-card)] w-full aspect-square max-w-md mx-auto z-0">
+    <div className="relative rounded-[20px] overflow-hidden border border-[var(--border-color)] bg-[var(--bg-muted)] w-full aspect-[4/3] z-0">
       {/* Map Container */}
       <div className="h-full w-full">
         <MapContainer
@@ -122,7 +216,7 @@ export default function AlertsMap({ alerts, onAlertClick }: AlertsMapProps) {
             <Marker
               key={alert.id}
               position={[alert.latitude!, alert.longitude!] as LatLngExpression}
-              icon={isCritical(alert) ? CriticalIcon : DefaultIcon}
+              icon={getMarkerIcon(alert)}
               eventHandlers={{
                 click: () => {
                   if (onAlertClick) onAlertClick(alert.id);

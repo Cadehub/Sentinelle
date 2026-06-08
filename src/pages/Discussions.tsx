@@ -71,7 +71,7 @@ export default function Discussions() {
 
   const getRoleBadgeColor = (role: "Propriétaire" | "Découvreur") => {
     if (role === "Propriétaire") {
-      return "bg-blue-500/20 text-blue-500 border-blue-500/30";
+      return "bg-[var(--color-accent)]/20 text-[var(--color-accent)] border-[var(--color-accent)]/30";
     }
     return "bg-emerald-500/20 text-emerald-500 border-emerald-500/30";
   };
@@ -82,13 +82,13 @@ export default function Discussions() {
       <div className="mb-8">
         <button
           onClick={() => navigate("/")}
-          className="inline-flex items-center gap-2 text-xs sm:text-sm font-semibold uppercase tracking-widest text-[var(--text-secondary)] hover:text-[var(--text-primary)] mb-6 transition-all active:scale-95"
+          className="inline-flex items-center gap-2 text-xs sm:text-sm font-semibold text-[var(--text-secondary)] hover:text-[var(--text-primary)] mb-6 transition-transform active:scale-95"
         >
           <ArrowLeft size={16} /> Retour
         </button>
 
         <div className="text-center md:text-left">
-          <h1 className="text-2xl sm:text-4xl md:text-5xl font-light italic font-serif tracking-tight mb-2 uppercase">
+          <h1 className="text-2xl sm:text-4xl md:text-5xl font-bold tracking-tight mb-2">
             Discussions
           </h1>
           <p className="text-[9px] sm:text-sm text-[var(--text-secondary)] font-medium">
@@ -118,7 +118,7 @@ export default function Discussions() {
 
       {/* Empty State */}
       {!loading && chatRooms.length === 0 && !error && (
-        <div className="bg-[var(--bg-card)] border border-[var(--border-color-strong)] rounded-[32px] p-12 text-center">
+        <div className="ui-card p-10 text-center">
           <MessageSquare className="w-16 h-16 mx-auto mb-4 text-[var(--text-tertiary)] opacity-50" />
           <h2 className="text-lg font-semibold text-[var(--text-secondary)] mb-2">Aucune discussion</h2>
           <p className="text-sm text-[var(--text-tertiary)] mb-6 max-w-sm mx-auto">
@@ -126,7 +126,7 @@ export default function Discussions() {
           </p>
           <button
             onClick={() => navigate("/publish")}
-            className="inline-block px-6 py-3 bg-[var(--text-primary)] text-[var(--bg-primary)] rounded-full font-bold uppercase text-xs tracking-widest hover:bg-[var(--text-primary)]/90 transition-all active:scale-95"
+            className="ui-primary-button w-full sm:w-auto active:scale-95 transition-transform"
           >
             Publier une Alerte
           </button>

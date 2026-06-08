@@ -17,8 +17,9 @@ import ProtectedAdminRoute from "./components/ProtectedAdminRoute";
 import { NotificationWatcher } from "./components/NotificationWatcher";
 
 export default function App() {
+
   return (
-    <ThemeProvider defaultTheme="dark">
+    <ThemeProvider defaultTheme="light" storageKey="sentinelle-ui-theme-v2">
       <GlobalBroadcast />
       <AuthProvider>
         <NotificationsProvider>

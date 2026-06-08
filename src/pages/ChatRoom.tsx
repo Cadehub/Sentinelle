@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router";
 import { useAuth } from "../lib/AuthContext";
 import { supabase } from "../lib/supabase";
-import { ArrowLeft, ImagePlus, Send, ShieldAlert } from "lucide-react";
+import { ArrowLeft, ImagePlus, MessageSquare, Send, ShieldAlert } from "lucide-react";
 import { cn } from "../lib/utils";
 import { formatDistanceToNow } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -82,7 +82,8 @@ const compressImage = (file: File): Promise<string> => {
 
 // Upload to ImgBB API
 const uploadToImgBB = async (base64Image: string): Promise<string> => {
-  const apiKey = import.meta.env.VITE_IMGBB_API_KEY || "526d7fc69f658b1160050c2675a864c2";
+  const apiKey = import.meta.env.VITE_IMGBB_API_KEY;
+  if (!apiKey) throw new Error("VITE_IMGBB_API_KEY manquant");
 
   const formData = new FormData();
   formData.append("image", base64Image.split(",")[1]);
@@ -183,20 +184,37 @@ export default function ChatRoom() {
   const [uploadingImage, setUploadingImage] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showViolationModal, setShowViolationModal] = useState(false);
+  const [isAtBottom, setIsAtBottom] = useState(true);
+  const [hasNewMessages, setHasNewMessages] = useState(false);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Auto-scroll to bottom when messages change
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+  const scrollToBottom = (behavior: ScrollBehavior = "smooth") => {
+    messagesEndRef.current?.scrollIntoView({ behavior, block: "end" });
   };
 
   useEffect(() => {
     if (messages.length === 0) return;
-    const timer = window.setTimeout(() => scrollToBottom(), 100);
+    if (!isAtBottom) {
+      setHasNewMessages(true);
+      return;
+    }
+
+    const timer = window.setTimeout(() => scrollToBottom("smooth"), 80);
     return () => window.clearTimeout(timer);
-  }, [messages]);
+  }, [messages, isAtBottom]);
+
+  const handleScroll = () => {
+    const el = messagesContainerRef.current;
+    if (!el) return;
+    const distanceFromBottom = el.scrollHeight - el.scrollTop - el.clientHeight;
+    const atBottom = distanceFromBottom < 120;
+    setIsAtBottom(atBottom);
+    if (atBottom) setHasNewMessages(false);
+  };
 
   // Fetch message history for current room
   const fetchMessages = async () => {
@@ -363,20 +381,20 @@ export default function ChatRoom() {
       if (chatRoom) {
         const recipientId = user.id === chatRoom.owner_id ? chatRoom.finder_id : chatRoom.owner_id
         
-        supabase
-          .from('notifications')
-          .insert({
-            user_id: recipientId,
-            title: 'Nouveau message',
-            body: 'Vous avez reçu un message pour une alerte.',
-            link: `/discussions/${roomId}`,
-          })
-          .then(() => {
-            console.log('[ChatRoom] Notification sent to', recipientId)
-          })
-          .catch((err) => {
-            console.error('[ChatRoom] Notification error:', err)
-          })
+        void (async () => {
+          try {
+            const { error: notifError } = await supabase.from("notifications").insert({
+              user_id: recipientId,
+              title: "Nouveau message",
+              body: "Vous avez reçu un message pour une alerte.",
+              link: `/discussions/${roomId}`,
+            });
+            if (notifError) throw notifError;
+            console.log("[ChatRoom] Notification sent to", recipientId);
+          } catch (err) {
+            console.error("[ChatRoom] Notification error:", err);
+          }
+        })();
       }
 
     } catch (err) {
@@ -455,21 +473,20 @@ export default function ChatRoom() {
       if (chatRoom) {
         const recipientId = user.id === chatRoom.owner_id ? chatRoom.finder_id : chatRoom.owner_id;
         
-        // Fire and forget - don't block UI if notification fails
-        supabase
-          .from("notifications")
-          .insert({
-            user_id: recipientId,
-            title: "Nouveau message",
-            body: "Vous avez reçu un message pour une alerte.",
-            link: `/discussions/${roomId}`,
-          })
-          .then(() => {
+        void (async () => {
+          try {
+            const { error: notifError } = await supabase.from("notifications").insert({
+              user_id: recipientId,
+              title: "Nouveau message",
+              body: "Vous avez reçu un message pour une alerte.",
+              link: `/discussions/${roomId}`,
+            });
+            if (notifError) throw notifError;
             console.log("[ChatRoom] Notification sent to", recipientId);
-          })
-          .catch((error) => {
-            console.warn("[ChatRoom] Failed to send notification:", error);
-          });
+          } catch (err) {
+            console.warn("[ChatRoom] Failed to send notification:", err);
+          }
+        })();
       }
 
       // Clear file input
@@ -494,7 +511,7 @@ export default function ChatRoom() {
             <p className="text-[var(--text-secondary)] mb-4">Veuillez vous connecter pour accéder à cette conversation.</p>
             <button
               onClick={() => navigate("/discussions")}
-              className="inline-flex items-center gap-2 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors"
+              className="inline-flex items-center gap-2 px-4 py-2 bg-[var(--color-accent)] hover:bg-[var(--color-accent-light)] text-white rounded-lg transition-colors"
             >
               <ArrowLeft size={16} />
               Retour
@@ -509,7 +526,7 @@ export default function ChatRoom() {
   if (loading) {
     return (
       <div className="flex flex-col h-[100dvh] bg-[var(--bg-primary)] items-center justify-center gap-4">
-        <div className="w-10 h-10 border-4 border-[var(--border-color)] border-t-blue-500 rounded-full animate-spin" />
+        <div className="w-10 h-10 border-4 border-[var(--border-color)] border-t-[var(--color-accent)] rounded-full animate-spin" />
         <p className="text-[var(--text-secondary)]">Chargement...</p>
       </div>
     );
@@ -537,7 +554,7 @@ export default function ChatRoom() {
   }
 
   return (
-    <div className="h-screen w-full bg-[var(--bg-primary)] overflow-hidden relative">
+    <div className="h-[100dvh] w-full bg-[var(--bg-primary)] overflow-hidden relative">
       {/* ZONE 1: Header FIXE en haut (ne défile jamais) */}
       <div className="fixed top-0 left-0 right-0 z-50 bg-[var(--bg-primary)] border-b border-[var(--border-color)] p-4 flex items-center gap-3">
         <button
@@ -570,12 +587,20 @@ export default function ChatRoom() {
 
       {/* ZONE 2: Messages - centale avec scroll indépendant (ne touche jamais le header ni footer) */}
       <div
-        className="absolute top-0 bottom-0 left-0 right-0 overflow-y-auto pt-[72px] pb-[72px] p-4 space-y-4 bg-[var(--bg-primary)]"
-        style={{ scrollPaddingTop: "72px", scrollPaddingBottom: "72px" }}
+        ref={messagesContainerRef}
+        onScroll={handleScroll}
+        className="absolute top-0 bottom-0 left-0 right-0 overflow-y-auto pt-[72px] p-4 space-y-4 bg-[var(--bg-primary)]"
+        style={{
+          scrollPaddingTop: "72px",
+          scrollPaddingBottom: "calc(72px + env(safe-area-inset-bottom))",
+          paddingBottom: "calc(72px + env(safe-area-inset-bottom))",
+        }}
       >
         {messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full gap-4 text-[var(--text-secondary)]">
-            <div className="text-5xl opacity-30">[ ]</div>
+            <div className="w-16 h-16 rounded-2xl bg-[var(--bg-card)] border border-[var(--border-color)] flex items-center justify-center text-[var(--text-tertiary)]">
+              <MessageSquare size={24} />
+            </div>
             <div className="text-center">
               <p className="font-semibold">Aucun message</p>
               <p className="text-xs text-[var(--text-tertiary)]">Lancez la conversation!</p>
@@ -613,13 +638,13 @@ export default function ChatRoom() {
                     className={cn(
                       "max-w-xs px-4 py-2 rounded-2xl break-words shadow-sm",
                       isOwn
-                        ? "bg-blue-600 text-white rounded-br-none"
+                        ? "bg-[var(--color-accent)] text-white rounded-br-none"
                         : "bg-[var(--bg-card)] text-[var(--text-primary)] rounded-bl-none border border-[var(--border-color)]"
                     )}
                   >
                     <p className="text-sm leading-relaxed">{msg.content}</p>
                     <p className={cn("text-xs mt-1 opacity-70", isOwn ? "text-blue-100" : "text-[var(--text-tertiary)]")}> 
-                      {formatDistanceToNow(new Date(msg.created_at), { locale: fr, addSuffix: false })}
+                      {formatDistanceToNow(new Date(msg.created_at), { locale: fr, addSuffix: true })}
                     </p>
                   </div>
                 )}
@@ -630,8 +655,24 @@ export default function ChatRoom() {
         <div ref={messagesEndRef} />
       </div>
 
+      {hasNewMessages && (
+        <button
+          type="button"
+          onClick={() => {
+            setHasNewMessages(false);
+            scrollToBottom("smooth");
+          }}
+          className="fixed right-4 bottom-24 z-50 px-4 py-2 rounded-full bg-[var(--bg-card)] border border-[var(--border-color-strong)] shadow-md text-xs font-semibold text-[var(--text-primary)] hover:border-[var(--text-primary)] active:scale-95 transition-transform"
+        >
+          Nouveaux messages
+        </button>
+      )}
+
       {/* ZONE 3: Footer input FIXE en bas (ne défile jamais) */}
-      <div className="fixed bottom-0 left-0 right-0 z-50 bg-[var(--bg-primary)] border-t border-[var(--border-color)] p-4">
+      <div
+        className="fixed bottom-0 left-0 right-0 z-50 bg-[var(--bg-primary)] border-t border-[var(--border-color)] px-4 pt-4"
+        style={{ paddingBottom: "calc(16px + env(safe-area-inset-bottom))" }}
+      >
         <form onSubmit={handleSendMessage} className="flex gap-2">
           <div className="flex-1 flex gap-2">
             <input
@@ -640,7 +681,7 @@ export default function ChatRoom() {
               onChange={(e) => setNewMessage(e.target.value)}
               placeholder="Message..."
               disabled={sending || uploadingImage}
-              className="flex-1 px-4 py-3 rounded-full bg-[var(--bg-primary)] border border-[var(--border-color)] text-[var(--text-primary)] placeholder-[var(--text-tertiary)] focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+              className="flex-1 px-4 py-3 rounded-full bg-[var(--bg-card)] border border-[var(--border-color)] text-[var(--text-primary)] placeholder-[var(--text-tertiary)] focus:outline-none focus:border-[var(--color-accent)] focus:ring-2 focus:ring-[var(--color-accent)]/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed text-sm"
             />
             <input
               ref={fileInputRef}
@@ -675,7 +716,7 @@ export default function ChatRoom() {
             className={cn(
               "p-2.5 rounded-full flex items-center justify-center transition-all active:scale-90 flex-shrink-0",
               newMessage.trim() && !sending && !uploadingImage
-                ? "bg-blue-500 text-white hover:bg-blue-600"
+                ? "bg-[var(--color-accent)] text-white hover:bg-[var(--color-accent)]"
                 : "bg-[var(--bg-primary)] text-[var(--text-tertiary)] cursor-not-allowed"
             )}
             title="Envoyer"

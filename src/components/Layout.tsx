@@ -5,10 +5,36 @@ import { useProfile } from "../lib/useProfile";
 import { useNotifications } from "../lib/NotificationsContext";
 import { useNotificationsWithOneSignal } from "../lib/useNotificationsWithOneSignal";
 import { LogOut, User, Bell, Home, MessageCircle, Settings as SettingsIcon, PlusCircle, X, Sun, Moon, Trash2, Shield } from "lucide-react";
-import { useState } from "react";
+import { ChevronUp } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 import { cn } from "../lib/utils";
 import GuideFAB from "./GuideFAB";
 import IOSInstallPrompt from "./IOSInstallPrompt";
+
+function ScrollToTopButton() {
+  const [visible, setVisible] = useState(false);
+
+  useEffect(() => {
+    const onScroll = () => setVisible(window.scrollY > 350);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  if (!visible) return null;
+
+  return (
+    <button
+      type="button"
+      onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+      className="fixed right-4 md:right-8 bottom-40 md:bottom-24 z-50 ui-icon-button hover:border-[var(--border-color-strong)] active:scale-95 transition-transform"
+      aria-label="Remonter en haut"
+      title="Remonter en haut"
+    >
+      <ChevronUp size={18} />
+    </button>
+  );
+}
 
 export default function Layout() {
   const { theme, setTheme } = useTheme();
@@ -19,6 +45,7 @@ export default function Layout() {
   const { notifications, unreadCount, markAsRead, deleteNotification, clearNotifications } = useNotifications();
   const { unreadCount: chatUnreadCount, oneSignalReady } = useNotificationsWithOneSignal();
   const [showNotifs, setShowNotifs] = useState(false);
+  const headerRef = useRef<HTMLElement | null>(null);
 
   // Logique conditionnelle : afficher le bouton uniquement si admin
   // Ne pas afficher tant que profileLoading === true (évite le flickering)
@@ -29,11 +56,32 @@ export default function Layout() {
   const isDiscussionDetailPage = location.pathname.match(/^\/discussions\/[^/]+$/);
   const shouldHideNavbar = isDiscussionDetailPage;
 
+  useEffect(() => {
+    const headerEl = headerRef.current;
+    if (!headerEl) return;
+
+    const updateHeaderHeightVar = () => {
+      const h = Math.ceil(headerEl.getBoundingClientRect().height);
+      document.documentElement.style.setProperty("--app-header-height", `${h}px`);
+    };
+
+    updateHeaderHeightVar();
+
+    const ro = new ResizeObserver(() => updateHeaderHeightVar());
+    ro.observe(headerEl);
+    window.addEventListener("resize", updateHeaderHeightVar, { passive: true } as any);
+
+    return () => {
+      ro.disconnect();
+      window.removeEventListener("resize", updateHeaderHeightVar as any);
+    };
+  }, []);
+
   return (
-    <div className="min-h-screen bg-[var(--bg-primary)] text-[var(--text-primary)] font-sans antialiased flex flex-col pt-safe-area pt-3 sm:pt-4 md:pt-8 md:px-6 lg:px-8 pb-24 md:pb-8">
+    <div className="min-h-screen bg-[var(--bg-primary)] text-[var(--text-primary)] font-sans antialiased flex flex-col pt-safe-area pb-24 md:pb-10">
       {/* Top Header */}
-      <header className="flex justify-between items-center md:items-end mb-4 sm:mb-6 md:mb-8 border-b border-[var(--border-color)] pb-3 sm:pb-4 md:pb-6 px-3 sm:px-4 md:px-0">
-        <div className="container mx-auto flex flex-row items-center justify-between max-w-7xl gap-2 sm:gap-4">
+      <header ref={headerRef} className="sticky top-0 z-50 bg-[var(--bg-primary)]/85 backdrop-blur-xl border-b border-[var(--border-color)] px-3 sm:px-4 md:px-6 lg:px-8">
+        <div className="container mx-auto flex flex-row items-center justify-between max-w-7xl gap-2 sm:gap-4 py-3 sm:py-4">
           <Link to="/" className="flex items-center gap-2 sm:gap-3 group active:scale-95 transition-transform flex-shrink-0">
             <img 
               src={theme === "dark" 
@@ -41,14 +89,14 @@ export default function Layout() {
                 : "https://res.cloudinary.com/droxtvmsy/image/upload/v1779060728/IMG-20260517-WA0008_pjctob.png"
               } 
               alt="Sentinelle Logo" 
-              className="h-12 sm:h-16 md:h-20 object-contain transition-opacity duration-300 group-hover:scale-105" 
+              className="h-9 sm:h-11 md:h-12 object-contain transition-opacity duration-300 group-hover:scale-[1.03]" 
             />
           </Link>
           
-          <div className="flex items-center gap-2 sm:gap-4 md:gap-6 text-[10px] sm:text-[11px] font-semibold uppercase tracking-widest text-[var(--text-secondary)]">
+          <div className="flex items-center gap-2 sm:gap-4 md:gap-6 text-[var(--text-secondary)]">
             <button
               onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-              className="p-2 bg-[var(--bg-card)] border border-[var(--border-color)] hover:border-[var(--text-primary)] rounded-full transition-all active:scale-95 text-[var(--text-primary)]"
+              className="ui-icon-button active:scale-95 transition-transform hover:border-[var(--border-color-strong)]"
               aria-label="Toggle theme"
             >
               {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
@@ -58,8 +106,8 @@ export default function Layout() {
 
             {/* Desktop Navigation Links */}
             <div className="hidden md:flex flex-wrap items-center gap-6">
-              <Link to="/" className="hover:text-[var(--text-primary)] transition-all active:scale-95">Tableau de Bord</Link>
-              <Link to="/discussions" className="relative hover:text-[var(--text-primary)] transition-all active:scale-95 flex items-center gap-2 group">
+              <Link to="/" className={cn("transition-all active:scale-95", location.pathname === "/" ? "text-[var(--text-primary)]" : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]")}>Tableau de bord</Link>
+              <Link to="/discussions" className={cn("relative transition-all active:scale-95 flex items-center gap-2 group", location.pathname.startsWith("/discussions") ? "text-[var(--text-primary)]" : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]")}>
                 Discussions
                 {chatUnreadCount > 0 && (
                   <span className="absolute -top-3 -right-4 w-5 h-5 bg-red-500 rounded-full text-white text-[10px] font-bold flex items-center justify-center shadow-lg shadow-red-500/50 animate-pulse">
@@ -67,19 +115,19 @@ export default function Layout() {
                   </span>
                 )}
               </Link>
-              <Link to="/settings" className="hover:text-[var(--text-primary)] transition-all active:scale-95">Préférences</Link>
-              <Link to="/publish" className="hover:text-[var(--text-primary)] transition-all text-[var(--text-primary)] border-b border-[var(--text-primary)] pb-1 active:scale-95">Signaler</Link>
+              <Link to="/settings" className={cn("transition-all active:scale-95", location.pathname === "/settings" ? "text-[var(--text-primary)]" : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]")}>Paramètres</Link>
+              <Link to="/publish" className={cn("transition-all active:scale-95", location.pathname === "/publish" ? "text-[var(--color-accent)]" : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]")}>Signaler</Link>
               {isAdmin && (
-                <Link to="/admin" className="flex items-center gap-2 px-3 py-1.5 bg-blue-600/10 border border-blue-600/30 rounded-lg hover:bg-blue-600/20 hover:border-blue-600/50 transition-all active:scale-95 text-blue-500 hover:text-blue-400">
+                <Link to="/admin" className="flex items-center gap-2 px-3 py-2 bg-[var(--bg-card)] border border-[var(--border-color)] rounded-full hover:border-[var(--border-color-strong)] transition-all active:scale-95 text-[var(--text-secondary)] hover:text-[var(--text-primary)]">
                   <Shield size={14} /> Admin
                 </Link>
               )}
               {user ? (
-                 <button onClick={() => signOut()} className="flex items-center gap-2 hover:text-red-500 transition-all active:scale-95">
+                 <button onClick={() => signOut()} className="flex items-center gap-2 text-[var(--text-secondary)] hover:text-red-500 transition-all active:scale-95">
                    <LogOut size={14} /> Quitter
                  </button>
               ) : (
-                 <Link to="/auth" className="flex items-center gap-2 px-4 py-2 bg-[var(--text-primary)] text-[var(--bg-primary)] rounded-full hover:bg-[var(--text-primary)]/90 transition-all active:scale-95">
+                 <Link to="/auth" className="ui-primary-button h-10 px-5 text-sm active:scale-95 transition-transform">
                    <User size={14} /> Connexion
                  </Link>
               )}
@@ -88,7 +136,7 @@ export default function Layout() {
         </div>
       </header>
       
-      <main className="flex-1 container mx-auto max-w-7xl px-3 sm:px-4 md:px-0">
+      <main className="flex-1 container mx-auto max-w-7xl px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6">
         <Outlet />
       </main>
 
@@ -98,15 +146,18 @@ export default function Layout() {
       {/* Guide FAB Component */}
       <GuideFAB />
 
+      {/* Bouton "remonter en haut" */}
+      <ScrollToTopButton />
+
       {/* Mobile Bottom Navigation Bar - Hidden on discussion detail pages */}
       {!shouldHideNavbar && (
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-[var(--bg-primary)]/80 backdrop-blur-xl border-t border-[var(--border-color-strong)] pb-safe-area shadow-[0_-10px_40px_rgba(0,0,0,0.1)] z-40">
-        <div className="flex justify-around items-center px-2 py-3">
-          <Link to="/" className={cn("flex flex-col items-center gap-1 p-2 transition-transform active:scale-95", location.pathname === "/" ? "text-[var(--text-primary)]" : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)]")}>
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-[var(--bg-card)] border-t border-[var(--border-color)] pb-safe-area shadow-[0_-12px_40px_rgba(15,23,42,0.12)] z-40">
+        <div className="flex justify-around items-center px-2 py-2.5">
+          <Link to="/" className={cn("flex flex-col items-center gap-1 p-2 transition-transform active:scale-95", location.pathname === "/" ? "text-[var(--color-accent)]" : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)]")}>
             <Home size={22} className={cn(location.pathname === "/" && "fill-current opacity-20")} />
-            <span className="text-[9px] font-bold uppercase tracking-wider">Accueil</span>
+            <span className="text-[10px] font-semibold">Accueil</span>
           </Link>
-          <Link to="/discussions" className={cn("flex flex-col items-center gap-1 p-2 transition-transform active:scale-95 relative", location.pathname === "/discussions" ? "text-[var(--text-primary)]" : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)]")}>
+          <Link to="/discussions" className={cn("flex flex-col items-center gap-1 p-2 transition-transform active:scale-95 relative", location.pathname === "/discussions" ? "text-[var(--color-accent)]" : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)]")}>
             <div className="relative">
               <MessageCircle size={22} className={cn(location.pathname === "/discussions" && "fill-current opacity-20")} />
               {chatUnreadCount > 0 && (
@@ -115,13 +166,13 @@ export default function Layout() {
                 </span>
               )}
             </div>
-            <span className="text-[9px] font-bold uppercase tracking-wider">Discussions</span>
+            <span className="text-[10px] font-semibold">Discussions</span>
           </Link>
           <Link to="/publish" className="flex flex-col items-center gap-1 p-2 -translate-y-4 group transition-transform active:scale-95 border-b-0">
-            <div className="bg-red-600 text-white p-3 rounded-full shadow-[0_0_20px_rgba(220,38,38,0.4)] group-hover:bg-red-500">
+            <div className="bg-[var(--color-accent)] text-white p-3.5 rounded-full shadow-[0_18px_40px_rgba(37,99,235,0.35)] group-hover:opacity-95">
               <PlusCircle size={26} />
             </div>
-            <span className="text-[9px] font-bold uppercase tracking-wider text-[var(--text-primary)] mt-1">Alerte</span>
+            <span className="text-[10px] font-semibold text-[var(--color-accent)] mt-1">Alerte</span>
           </Link>
           {user && (
             <div className="relative">
@@ -137,14 +188,14 @@ export default function Layout() {
                     </span>
                   )}
                 </div>
-                <span className="text-[9px] font-bold uppercase tracking-wider">Notifs</span>
+                <span className="text-[10px] font-semibold">Notifs</span>
               </button>
 
               {showNotifs && (
                 <>
                   <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40" onClick={() => setShowNotifs(false)} />
-                  <div className="fixed inset-x-4 bottom-24 bg-[var(--bg-card)] border border-[var(--border-color-strong)] shadow-2xl rounded-[32px] overflow-hidden z-50 text-left p-2 flex flex-col gap-1 max-h-72">
-                    <div className="p-3 text-xs font-bold border-b border-[var(--border-color)] flex justify-between items-center">
+                  <div className="fixed inset-x-4 bottom-24 ui-card overflow-hidden z-50 text-left p-2 flex flex-col gap-1 max-h-72">
+                    <div className="p-3 text-sm font-semibold border-b border-[var(--border-color)] flex justify-between items-center">
                       <span>Notifications</span>
                       <div className="flex items-center gap-2">
                         {notifications.length > 0 && (
@@ -179,13 +230,13 @@ export default function Layout() {
                                 }}
                                 className="w-full text-left block hover:opacity-80 transition-opacity active:scale-95"
                               >
-                                <h4 className={cn("text-[10px] font-bold mb-1", !n.read && "text-[var(--text-primary)]")}>{n.title}</h4>
-                                <p className="text-[10px] text-[var(--text-tertiary)] normal-case tracking-normal">{n.body}</p>
+                                <h4 className={cn("text-xs font-semibold mb-1 break-words", !n.read && "text-[var(--text-primary)]")}>{n.title}</h4>
+                                <p className="text-xs text-[var(--text-tertiary)] normal-case tracking-normal whitespace-pre-wrap break-words">{n.body}</p>
                               </button>
                             ) : (
                               <>
-                                <h4 className={cn("text-[10px] font-bold mb-1", !n.read && "text-[var(--text-primary)]")}>{n.title}</h4>
-                                <p className="text-[10px] text-[var(--text-tertiary)] normal-case tracking-normal">{n.body}</p>
+                                <h4 className={cn("text-xs font-semibold mb-1 break-words", !n.read && "text-[var(--text-primary)]")}>{n.title}</h4>
+                                <p className="text-xs text-[var(--text-tertiary)] normal-case tracking-normal whitespace-pre-wrap break-words">{n.body}</p>
                               </>
                             )}
                             <button
@@ -199,7 +250,7 @@ export default function Layout() {
                         ))
                       )}
                     </div>
-                    <button onClick={() => setShowNotifs(false)} className="mt-2 p-2 text-[10px] font-bold uppercase tracking-widest text-[var(--text-primary)] border-t border-[var(--border-color)] active:scale-95 transition-all">
+                    <button onClick={() => setShowNotifs(false)} className="mt-2 p-2 text-sm font-semibold text-[var(--text-primary)] border-t border-[var(--border-color)] active:scale-95 transition-all">
                       Fermer
                     </button>
                   </div>
@@ -208,16 +259,24 @@ export default function Layout() {
             </div>
           )}
           {isAdmin && (
-            <Link to="/admin" className={cn("flex flex-col items-center gap-1 p-2 transition-transform active:scale-95", location.pathname === "/admin" ? "text-[var(--text-primary)]" : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)]")}>
-              <div className="bg-blue-600/20 p-1.5 rounded-full">
-                <Shield size={20} className={cn("text-blue-500", location.pathname === "/admin" && "fill-current opacity-20")} />
+            <Link to="/admin" className={cn("flex flex-col items-center gap-1 p-2 transition-transform active:scale-95", location.pathname === "/admin" ? "text-[var(--color-accent)]" : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)]")}>
+              <div className="bg-[var(--color-accent)]/20 p-1.5 rounded-full">
+                <Shield size={20} className={cn("text-[var(--color-accent)]", location.pathname === "/admin" && "fill-current opacity-20")} />
               </div>
-              <span className="text-[9px] font-bold uppercase tracking-wider">Admin</span>
+              <span className="text-[10px] font-semibold">Admin</span>
             </Link>
           )}
-          <Link to={user ? "/settings" : "/auth"} className={cn("flex flex-col items-center gap-1 p-2 transition-transform active:scale-95", (location.pathname === "/settings" || location.pathname === "/auth") ? "text-[var(--text-primary)]" : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)]")}>
+          <Link
+            to={user ? "/settings" : "/auth"}
+            className={cn(
+              "flex flex-col items-center gap-1 p-2 transition-transform active:scale-95",
+              (location.pathname === "/settings" || location.pathname === "/auth")
+                ? "text-[var(--color-accent)]"
+                : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)]"
+            )}
+          >
             <SettingsIcon size={22} className={cn((location.pathname === "/settings" || location.pathname === "/auth") && "fill-current opacity-20")} />
-            <span className="text-[9px] font-bold uppercase tracking-wider">Paramètres</span>
+            <span className="text-[10px] font-semibold">Paramètres</span>
           </Link>
         </div>
       </nav>

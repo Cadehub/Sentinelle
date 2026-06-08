@@ -14,6 +14,7 @@ interface SubTypeOption {
   label: string
   icon: React.ReactNode
   description: string
+  color: string
 }
 
 const CATEGORY_MAPPING: Record<string, string[]> = {
@@ -26,18 +27,18 @@ const CATEGORY_MAPPING: Record<string, string[]> = {
 
 const subTypes: Record<MainType, SubTypeOption[]> = {
   lost: [
-    { id: 'document', label: 'Document', icon: <FileText className="w-8 h-8" />, description: 'CNI, Passeport, Permis...' },
-    { id: 'object', label: 'Objet', icon: <Package className="w-8 h-8" />, description: 'Sac, clés, montre...' },
-    { id: 'person', label: 'Personne', icon: <Users className="w-8 h-8" />, description: 'Personne disparue' },
-    { id: 'vehicle', label: 'Véhicule', icon: <Car className="w-8 h-8" />, description: 'Voiture, moto...' },
-    { id: 'animal', label: 'Animal', icon: <Bone className="w-8 h-8" />, description: 'Chien, chat, oiseau...' },
+    { id: 'document', label: 'Document', icon: <FileText className="w-8 h-8" />, description: 'CNI, Passeport, Permis...', color: 'var(--color-icon-document)' },
+    { id: 'object', label: 'Objet', icon: <Package className="w-8 h-8" />, description: 'Sac, clés, montre...', color: 'var(--color-icon-object)' },
+    { id: 'person', label: 'Personne', icon: <Users className="w-8 h-8" />, description: 'Personne disparue', color: 'var(--color-icon-person)' },
+    { id: 'vehicle', label: 'Véhicule', icon: <Car className="w-8 h-8" />, description: 'Voiture, moto...', color: 'var(--color-icon-vehicle)' },
+    { id: 'animal', label: 'Animal', icon: <Bone className="w-8 h-8" />, description: 'Chien, chat, oiseau...', color: 'var(--color-icon-object)' },
   ],
   found: [
-    { id: 'document', label: 'Document', icon: <FileText className="w-8 h-8" />, description: 'CNI, Passeport, Permis...' },
-    { id: 'object', label: 'Objet', icon: <Package className="w-8 h-8" />, description: 'Sac, clés, montre...' },
-    { id: 'person', label: 'Personne', icon: <Users className="w-8 h-8" />, description: 'Personne trouvée' },
-    { id: 'vehicle', label: 'Véhicule', icon: <Car className="w-8 h-8" />, description: 'Voiture, moto...' },
-    { id: 'animal', label: 'Animal', icon: <Bone className="w-8 h-8" />, description: 'Chien, chat, oiseau...' },
+    { id: 'document', label: 'Document', icon: <FileText className="w-8 h-8" />, description: 'CNI, Passeport, Permis...', color: 'var(--color-icon-document)' },
+    { id: 'object', label: 'Objet', icon: <Package className="w-8 h-8" />, description: 'Sac, clés, montre...', color: 'var(--color-icon-object)' },
+    { id: 'person', label: 'Personne', icon: <Users className="w-8 h-8" />, description: 'Personne trouvée', color: 'var(--color-icon-person)' },
+    { id: 'vehicle', label: 'Véhicule', icon: <Car className="w-8 h-8" />, description: 'Voiture, moto...', color: 'var(--color-icon-vehicle)' },
+    { id: 'animal', label: 'Animal', icon: <Bone className="w-8 h-8" />, description: 'Chien, chat, oiseau...', color: 'var(--color-icon-object)' },
   ],
 }
 
@@ -72,7 +73,7 @@ export default function Step1TypeSelection({ onNext }: Step1TypeSelectionProps) 
 
         {/* Validation Error */}
         {showError && (
-          <div className="p-4 bg-red-50 border border-red-200 rounded-lg flex gap-3">
+          <div className="ui-card p-4 border-red-500/20 bg-red-500/5 flex gap-3">
             <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
             <div>
               <h3 className="font-semibold text-red-900">Sélection obligatoire</h3>
@@ -81,27 +82,37 @@ export default function Step1TypeSelection({ onNext }: Step1TypeSelectionProps) 
           </div>
         )}
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="space-y-3">
           <button
             onClick={() => setSelectedMain('lost')}
-            className="group p-6 border-2 border-[var(--border-color)] rounded-xl hover:border-blue-500 hover:bg-[var(--bg-card)] transition-all active:scale-95 duration-200"
+            className="ui-card group w-full p-4 sm:p-5 flex items-center justify-between gap-4 hover:border-[var(--border-color-strong)] transition-transform active:scale-[0.98]"
           >
-            <div className="p-3 bg-blue-100 dark:bg-blue-900/30 w-fit rounded-lg mb-3 group-hover:bg-blue-200 dark:group-hover:bg-blue-900/50 transition-colors">
-              <Search className="w-6 h-6 text-blue-600" />
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-2xl bg-[var(--color-accent)]/10 text-[var(--color-accent)] flex items-center justify-center border border-[var(--color-accent)]/15">
+                <Search className="w-6 h-6" />
+              </div>
+              <div className="text-left">
+                <h3 className="text-base font-semibold text-[var(--text-primary)]">J'ai perdu</h3>
+                <p className="text-sm text-[var(--text-secondary)]">Signaler une perte</p>
+              </div>
             </div>
-            <h3 className="text-lg font-bold text-[var(--text-primary)] mb-1">J'ai perdu</h3>
-            <p className="text-sm text-[var(--text-secondary)]">Signaler une perte</p>
+            <ChevronRight className="w-5 h-5 text-[var(--text-tertiary)]" />
           </button>
 
           <button
             onClick={() => setSelectedMain('found')}
-            className="group p-6 border-2 border-[var(--border-color)] rounded-xl hover:border-green-500 hover:bg-[var(--bg-card)] transition-all active:scale-95 duration-200"
+            className="ui-card group w-full p-4 sm:p-5 flex items-center justify-between gap-4 hover:border-[var(--border-color-strong)] transition-transform active:scale-[0.98]"
           >
-            <div className="p-3 bg-green-100 dark:bg-green-900/30 w-fit rounded-lg mb-3 group-hover:bg-green-200 dark:group-hover:bg-green-900/50 transition-colors">
-              <Gift className="w-6 h-6 text-green-600" />
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center border border-emerald-500/15">
+                <Gift className="w-6 h-6" />
+              </div>
+              <div className="text-left">
+                <h3 className="text-base font-semibold text-[var(--text-primary)]">J'ai trouvé</h3>
+                <p className="text-sm text-[var(--text-secondary)]">Signaler une découverte</p>
+              </div>
             </div>
-            <h3 className="text-lg font-bold text-[var(--text-primary)] mb-1">J'ai trouvé</h3>
-            <p className="text-sm text-[var(--text-secondary)]">Signaler une découverte</p>
+            <ChevronRight className="w-5 h-5 text-[var(--text-tertiary)]" />
           </button>
         </div>
       </div>
@@ -116,7 +127,7 @@ export default function Step1TypeSelection({ onNext }: Step1TypeSelectionProps) 
             setSelectedMain(null)
             setSelectedSub(null)
           }}
-          className="text-blue-600 hover:text-blue-700 font-medium mb-4 inline-flex items-center gap-1"
+          className="text-[var(--color-accent)] hover:text-[var(--color-accent-light)] font-semibold mb-4 inline-flex items-center gap-1 active:scale-95 transition-transform"
         >
           Retour
         </button>
@@ -131,7 +142,7 @@ export default function Step1TypeSelection({ onNext }: Step1TypeSelectionProps) 
 
       {/* Validation Error */}
       {showError && (
-        <div className="p-4 bg-red-50 border border-red-200 rounded-lg flex gap-3">
+        <div className="ui-card p-4 border-red-500/20 bg-red-500/5 flex gap-3">
           <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
           <div>
             <h3 className="font-semibold text-red-900">Sélection obligatoire</h3>
@@ -140,7 +151,7 @@ export default function Step1TypeSelection({ onNext }: Step1TypeSelectionProps) 
         </div>
       )}
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+      <div className="space-y-3">
         {subTypes[selectedMain].map((subType) => (
           <button
             key={subType.id}
@@ -148,20 +159,32 @@ export default function Step1TypeSelection({ onNext }: Step1TypeSelectionProps) 
               setSelectedSub(subType.id)
             }}
             className={cn(
-              'group p-4 border-2 rounded-xl transition-all active:scale-95 duration-200',
+              'ui-card group w-full p-4 sm:p-5 flex items-center justify-between gap-4 transition-transform active:scale-[0.98]',
               selectedSub === subType.id
-                ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 shadow-md'
-                : 'border-[var(--border-color)] hover:border-blue-300 hover:bg-[var(--bg-card)]'
+                ? 'border-[var(--color-accent)] bg-[var(--color-accent)]/5'
+                : 'hover:border-[var(--border-color-strong)]'
             )}
           >
-            <div className={cn(
-              'text-[var(--text-primary)] mb-2 flex justify-center transition-all duration-200',
-              selectedSub === subType.id ? 'scale-110' : 'group-hover:scale-105'
-            )}>
-              {subType.icon}
+            <div className="flex items-center gap-4">
+              <div className={cn(
+                'w-12 h-12 rounded-2xl flex items-center justify-center border transition-transform duration-200',
+                subType.id === 'document' && 'bg-[var(--color-accent)]/10 border-[var(--color-accent)]/15',
+                subType.id === 'object' && 'bg-emerald-500/10 border-emerald-500/15',
+                subType.id === 'person' && 'bg-violet-500/10 border-violet-500/15',
+                subType.id === 'vehicle' && 'bg-amber-500/10 border-amber-500/15',
+                subType.id === 'animal' && 'bg-emerald-500/10 border-emerald-500/15',
+                selectedSub === subType.id ? 'scale-[1.03]' : 'group-hover:scale-[1.02]'
+              )}>
+                <div style={{ color: subType.color }}>
+                  {subType.icon}
+                </div>
+              </div>
+              <div className="text-left">
+                <h3 className="font-semibold text-[var(--text-primary)] text-base">{subType.label}</h3>
+                <p className="text-sm text-[var(--text-secondary)] mt-0.5">{subType.description}</p>
+              </div>
             </div>
-            <h3 className="font-bold text-[var(--text-primary)] text-sm">{subType.label}</h3>
-            <p className="text-xs text-[var(--text-tertiary)] mt-1">{subType.description}</p>
+            <ChevronRight className="w-5 h-5 text-[var(--text-tertiary)]" />
           </button>
         ))}
       </div>
@@ -169,7 +192,7 @@ export default function Step1TypeSelection({ onNext }: Step1TypeSelectionProps) 
       {canProceed() && (
         <button
           onClick={handleNext}
-          className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold flex items-center justify-center gap-2 transition"
+          className="ui-primary-button w-full active:scale-[0.99] transition-transform"
         >
           Continuer
           <ChevronRight className="w-4 h-4" />

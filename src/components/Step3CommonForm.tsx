@@ -270,7 +270,7 @@ export default function Step3CommonForm({ onBack, onSubmit, isSubmitting, submit
             onChange={(e) => setSearchQuery(e.target.value)}
             onFocus={() => searchQuery && setShowSuggestions(true)}
             placeholder="Ex: Douala, Yaoundé, rue..."
-            className="w-full px-4 py-3 border border-[var(--border-color)] rounded-lg bg-[var(--bg-primary)] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-4 py-3 border border-[var(--border-color)] rounded-lg bg-[var(--bg-primary)] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]"
           />
 
           {suggestions.length > 0 && (
@@ -334,7 +334,7 @@ export default function Step3CommonForm({ onBack, onSubmit, isSubmitting, submit
             <button
               type="button"
               onClick={() => setShowCalendar(!showCalendar)}
-              className="w-full px-4 py-3 border border-[var(--border-color)] rounded-lg bg-[var(--bg-primary)] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-blue-500 flex items-center gap-2 justify-between hover:border-[var(--text-primary)] transition-colors"
+              className="w-full px-4 py-3 border border-[var(--border-color)] rounded-lg bg-[var(--bg-primary)] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)] flex items-center gap-2 justify-between hover:border-[var(--text-primary)] transition-colors"
             >
               <span className={formData.date ? 'text-[var(--text-primary)]' : 'text-[var(--text-tertiary)]'}>
                 {formData.date ? getFormattedDate(formData.date) : 'Sélectionner une date'}
@@ -393,9 +393,9 @@ export default function Step3CommonForm({ onBack, onSubmit, isSubmitting, submit
                         onClick={() => selectDate(day)}
                         className={`py-2 rounded text-sm font-medium transition-all ${
                           isSelected
-                            ? 'bg-blue-600 text-white'
+                            ? 'bg-[var(--color-accent)] text-white'
                             : isToday
-                            ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 border border-blue-300 dark:border-blue-700'
+                            ? 'bg-blue-100 dark:bg-blue-900/30 text-[var(--color-accent)] border border-blue-300 dark:border-blue-700'
                             : 'hover:bg-[var(--bg-primary)] text-[var(--text-primary)]'
                         }`}
                       >
@@ -427,7 +427,7 @@ export default function Step3CommonForm({ onBack, onSubmit, isSubmitting, submit
             onChange={(e) => handleChange('description', e.target.value)}
             placeholder="Décrivez ce qui s'est passé, où, comment, les circonstances, etc."
             rows={5}
-            className="w-full px-4 py-3 border border-[var(--border-color)] rounded-lg bg-[var(--bg-primary)] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-4 py-3 border border-[var(--border-color)] rounded-lg bg-[var(--bg-primary)] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]"
           />
         </div>
 
@@ -455,7 +455,7 @@ export default function Step3CommonForm({ onBack, onSubmit, isSubmitting, submit
               onChange={(e) => handleChange('reward', e.target.value)}
               placeholder="0"
               min="0"
-              className="flex-1 px-4 py-3 border border-[var(--border-color)] rounded-lg bg-[var(--bg-primary)] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="flex-1 px-4 py-3 border border-[var(--border-color)] rounded-lg bg-[var(--bg-primary)] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]"
             />
             <span className="text-[var(--text-primary)] font-medium">XAF</span>
           </div>

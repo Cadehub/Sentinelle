@@ -23,7 +23,7 @@ export function useAlertReminder(userId: string | undefined) {
         .from('alerts')
         .select('id, title, created_at, updated_at')
         .eq('user_id', userId)
-        .eq('status', 'actif')
+        .in('status', ['active', 'actif'])
         .order('created_at', { ascending: true })
 
       if (error) {

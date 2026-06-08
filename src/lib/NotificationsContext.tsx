@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from './supabase';
 import { useAuth } from './AuthContext';
 import { usePreferences } from './preferences';
+import { getRegionFromCity } from "./regions";
 
 export type Notification = {
   id: string;
@@ -129,14 +130,14 @@ export function NotificationsProvider({ children }: { children: React.ReactNode 
         const newAlert = payload.new;
         
         try {
-          const matchCity = preferences.subscribedCities.length > 0 ? preferences.subscribedCities.includes(newAlert.city) : false;
+          const matchRegion = preferences.subscribedRegions.length > 0 ? preferences.subscribedRegions.includes(getRegionFromCity(newAlert.city)) : false;
           const matchType = preferences.subscribedTypes.length > 0 ? preferences.subscribedTypes.includes(newAlert.type) : false;
           const matchRadar = preferences.radarNeighborhoods.length > 0 ? preferences.radarNeighborhoods.some(r => newAlert.neighborhood.toLowerCase().includes(r.toLowerCase())) : false;
           
           if (
-            newAlert.status === 'actif' &&
-            (preferences.subscribedCities.length === 0 && preferences.subscribedTypes.length === 0 && preferences.radarNeighborhoods.length === 0 || // no filters = all
-             matchCity || matchType || matchRadar)
+            (newAlert.status === "active" || newAlert.status === "actif") &&
+            (preferences.subscribedRegions.length === 0 && preferences.subscribedTypes.length === 0 && preferences.radarNeighborhoods.length === 0 ||
+             matchRegion || matchType || matchRadar)
           ) {
             addNotification({
               title: matchRadar ? `[RADAR] DÉCLENCHÉ: ${newAlert.type}` : `Nouvelle alerte: ${newAlert.type}`,
@@ -192,7 +193,7 @@ export function NotificationsProvider({ children }: { children: React.ReactNode 
         supabase.removeChannel(channelComments);
       }
     };
-  }, [preferences.subscribedCities, preferences.subscribedTypes, preferences.radarNeighborhoods, preferences.notificationsEnabled, preferences.interactedAlerts, session?.user?.id]);
+  }, [preferences.subscribedRegions, preferences.subscribedTypes, preferences.radarNeighborhoods, preferences.notificationsEnabled, preferences.interactedAlerts, session?.user?.id]);
 
   const addNotification = (notif: Omit<Notification, 'id' | 'read' | 'timestamp'>) => {
     const newNotif: Notification = {

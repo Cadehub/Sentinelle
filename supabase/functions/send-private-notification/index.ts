@@ -1,16 +1,18 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import admin from "npm:firebase-admin";
+import { GoogleAuth } from "npm:google-auth-library";
 
 const supabaseUrl = Deno.env.get("SUPABASE_URL");
 const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
 const serviceAccountJson = Deno.env.get("FIREBASE_SERVICE_ACCOUNT");
 
 let serviceAccount: Record<string, unknown> | null = null;
+let projectId = "";
 
 if (serviceAccountJson) {
   try {
     serviceAccount = JSON.parse(serviceAccountJson);
+    projectId = (serviceAccount as any).project_id;
   } catch (error) {
     console.error("FIREBASE_SERVICE_ACCOUNT n'est pas un JSON valide.", error);
   }
@@ -18,9 +20,12 @@ if (serviceAccountJson) {
   console.error("FIREBASE_SERVICE_ACCOUNT n'est pas défini.");
 }
 
-if (admin.apps.length === 0 && serviceAccount) {
-  admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount as any),
+// Initialisation de l'authentification Google OAuth2 (100% stable sur Deno)
+let auth: GoogleAuth | null = null;
+if (serviceAccount) {
+  auth = new GoogleAuth({
+    credentials: serviceAccount,
+    scopes: ["https://www.googleapis.com/auth/firebase.messaging"],
   });
 }
 
@@ -53,6 +58,7 @@ serve(async (req) => {
 
     console.log(`Webhook reçu pour message dans room ${roomId} de la part de ${senderId}`);
 
+    // Récupération de la room pour identifier le destinataire
     const { data: chatRoom, error: roomError } = await supabase
       .from("chat_rooms")
       .select("owner_id, finder_id")
@@ -68,9 +74,9 @@ serve(async (req) => {
     }
 
     const receiverId = chatRoom.owner_id === senderId ? chatRoom.finder_id : chatRoom.owner_id;
-
     console.log(`Destinataire identifié: ${receiverId}`);
 
+    // Récupération des tokens FCM de l'utilisateur ciblé
     const { data: tokenRecords, error: tokenError } = await supabase
       .from("user_push_tokens")
       .select("token")
@@ -96,6 +102,7 @@ serve(async (req) => {
 
     console.log(`${tokens.length} token(s) trouvé(s) pour le destinataire`);
 
+    // Récupération de l'identité de l'expéditeur
     let senderName = "Utilisateur";
     try {
       const { data: senderProfile, error: profileError } = await supabase
@@ -106,8 +113,6 @@ serve(async (req) => {
 
       if (senderProfile) {
         senderName = senderProfile.full_name || senderProfile.username || "Utilisateur";
-      } else if (!profileError) {
-        console.log("Table 'profiles' non trouvée ou utilisateur sans profil, utilisation du nom par défaut");
       }
     } catch (profileErr) {
       console.warn("Erreur lors de la récupération du profil sender:", profileErr);
@@ -115,86 +120,76 @@ serve(async (req) => {
 
     const notificationTitle = `Nouveau message de ${senderName}`;
     const notificationBody = messageContent.substring(0, 100);
+    const notificationIconUrl = "https://res.cloudinary.com/droxtvmsy/image/upload/v1779060726/IMG-20260517-WA0007_rff0ko.png";
 
-    const messaging = admin.messaging();
-
-    let sendResult;
-    if (tokens.length === 1) {
-      const notificationIconUrl = "https://res.cloudinary.com/droxtvmsy/image/upload/v1779060726/IMG-20260517-WA0007_rff0ko.png";
-      sendResult = await messaging.send({
-        token: tokens[0],
-        notification: {
-          title: notificationTitle,
-          body: notificationBody,
-          icon: notificationIconUrl,
-          image: notificationIconUrl,
-        },
-        webpush: {
-          notification: {
-            icon: notificationIconUrl,
-            badge: notificationIconUrl,
-            image: notificationIconUrl,
-          },
-        },
-        android: {
-          notification: {
-            icon: notificationIconUrl,
-            image: notificationIconUrl,
-          },
-        },
-        apns: {
-          fcmOptions: {
-            image: notificationIconUrl,
-          },
-        },
-        data: {
-          type: "private_message",
-          sender_id: senderId,
-          room_id: roomId,
-        },
-      });
-    } else {
-      const notificationIconUrl = "https://res.cloudinary.com/droxtvmsy/image/upload/v1779060726/IMG-20260517-WA0007_rff0ko.png";
-      sendResult = await messaging.sendEachForMulticast({
-        tokens: tokens,
-        notification: {
-          title: notificationTitle,
-          body: notificationBody,
-          icon: notificationIconUrl,
-          image: notificationIconUrl,
-        },
-        webpush: {
-          notification: {
-            icon: notificationIconUrl,
-            badge: notificationIconUrl,
-            image: notificationIconUrl,
-          },
-        },
-        android: {
-          notification: {
-            icon: notificationIconUrl,
-            image: notificationIconUrl,
-          },
-        },
-        apns: {
-          fcmOptions: {
-            image: notificationIconUrl,
-          },
-        },
-        data: {
-          type: "private_message",
-          sender_id: senderId,
-          room_id: roomId,
-        },
-      });
+    if (!auth || !projectId) {
+      throw new Error("Configuration Firebase ou projet manquante.");
     }
 
-    console.log("Notification(s) envoyée(s) avec succes:", sendResult);
+    // 1. Génération du token d'accès OAuth2 à la volée
+    const client = await auth.getClient();
+    const tokenResponse = await client.getAccessToken();
+    const accessToken = tokenResponse.token;
 
-    return new Response(JSON.stringify({ success: true, result: sendResult }), {
+    if (!accessToken) {
+      throw new Error("Impossible de générer le jeton d'accès Firebase.");
+    }
+
+    const fcmUrl = `https://fcm.googleapis.com/v1/projects/${projectId}/messages:send`;
+
+    // 2. Préparation et envoi des requêtes HTTP en parallèle pour chaque token (Multicast natif)
+    const sendPromises = tokens.map(async (token) => {
+      const fcmPayload = {
+        message: {
+          token: token,
+          notification: {
+            title: notificationTitle,
+            body: notificationBody,
+            image: notificationIconUrl,
+          },
+          data: {
+            type: "private_message",
+            sender_id: String(senderId),
+            room_id: String(roomId),
+          },
+          android: {
+            notification: {
+              icon: notificationIconUrl,
+              image: notificationIconUrl,
+            },
+          },
+          webpush: {
+            notification: {
+              icon: notificationIconUrl,
+              image: notificationIconUrl,
+            },
+            headers: {
+              TTL: "3600", // Durée de vie plus courte pour de la messagerie instantanée (1h)
+            }
+          }
+        }
+      };
+
+      const response = await fetch(fcmUrl, {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(fcmPayload),
+      });
+
+      return response.ok ? response.json() : Promise.reject(await response.json());
+    });
+
+    const results = await Promise.allSettled(sendPromises);
+    console.log("Résultats des envois de notifications privées:", results);
+
+    return new Response(JSON.stringify({ success: true, results }), {
       status: 200,
       headers,
     });
+
   } catch (error) {
     console.error("Erreur lors de l'envoi de la notification privée:", error);
     return new Response(JSON.stringify({ error: error instanceof Error ? error.message : "Erreur interne" }), {

@@ -6,9 +6,9 @@ import { useState, useEffect } from "react";
 import { useAuth } from "../lib/AuthContext";
 import { supabase } from "../lib/supabase";
 import { useTranslation } from "react-i18next";
-import { requestPushPermission, saveTokenToSupabase } from "../utils/firebase";
+import { ensureNotificationPermissionAndToken } from "../utils/firebase";
+import { SELECTABLE_REGIONS } from "../lib/regions";
 
-const CITIES = ["Douala", "Yaoundé", "Garoua", "Bamenda", "Maroua", "Bafoussam", "Ngaoundéré", "Kribi", "Buea"];
 const ALERT_TYPES = ["Vol", "Perte", "Objet Trouvé", "Agression", "Accident", "Urgence Médicale", "Incendie", "Autre"];
 const RADII_KM = [2, 5, 10, 20, 50];
 
@@ -23,6 +23,7 @@ export default function Settings() {
 
   const [radarInput, setRadarInput] = useState("");
   const [radius, setRadius] = useState<number>(preferences.dangerRadius || 5);
+  const [notificationError, setNotificationError] = useState<string | null>(null);
 
   useEffect(() => {
     if (activeSection === "history" && user) {
@@ -41,12 +42,12 @@ export default function Settings() {
     setLoadingHistory(false);
   };
 
-  const handleToggleCity = (city: string) => {
-    const isSubscribed = preferences.subscribedCities.includes(city);
+  const handleToggleRegion = (region: string) => {
+    const isSubscribed = preferences.subscribedRegions.includes(region);
     if (isSubscribed) {
-      setPreferences({ subscribedCities: preferences.subscribedCities.filter(c => c !== city) });
+      setPreferences({ subscribedRegions: preferences.subscribedRegions.filter((r) => r !== region) });
     } else {
-      setPreferences({ subscribedCities: [...preferences.subscribedCities, city] });
+      setPreferences({ subscribedRegions: [...preferences.subscribedRegions, region] });
     }
   };
 
@@ -77,28 +78,30 @@ export default function Settings() {
 
   const requestNotificationPermission = async () => {
     console.log("Clic détecté sur le switch, tentative de récupération du token...");
-    
+    setNotificationError(null);
+
+    // Si l'utilisateur a déjà bloqué les notifications, on affiche un message UI
+    if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'denied') {
+      setNotificationError(
+        "Les notifications sont bloquées par votre navigateur. Veuillez les autoriser dans les paramètres de votre barre d'adresse pour recevoir les alertes."
+      );
+      setPreferences({ notificationsEnabled: false });
+      return;
+    }
+
     try {
-      const token = await requestPushPermission();
-      
-      if (token) {
-        console.log("Token Firebase reçu:", token);
-        
-        const saved = await saveTokenToSupabase(token);
-        if (saved) {
-          console.log("Token sauvegarde avec succes dans Supabase.");
-          setPreferences({ notificationsEnabled: true });
-        } else {
-          console.warn("Echec de la sauvegarde du token dans Supabase.");
-          setPreferences({ notificationsEnabled: false });
-        }
-      } else {
-        console.warn("Aucun token reçu, notifications refusées ou bloquées.");
-        setPreferences({ notificationsEnabled: false });
+      const saved = await ensureNotificationPermissionAndToken();
+      setPreferences({ notificationsEnabled: !!saved });
+      // si ensureNotificationPermissionAndToken renvoie null (denied ou erreur), prévenir l'utilisateur
+      if (saved === null) {
+        setNotificationError(
+          "Impossible d'activer les notifications. Vérifiez les permissions de votre navigateur."
+        );
       }
     } catch (error) {
       console.error("Erreur Firebase lors de la récupération du token:", error);
       setPreferences({ notificationsEnabled: false });
+      setNotificationError("Erreur lors de l'activation des notifications. Réessayez plus tard.");
     }
   };
 
@@ -113,12 +116,12 @@ export default function Settings() {
 
   return (
     <div className="max-w-2xl mx-auto py-6 sm:py-8 px-3 sm:px-4 md:px-0 animate-in fade-in zoom-in-95 duration-500">
-      <Link to="/" className="inline-flex items-center gap-2 text-xs sm:text-sm font-semibold uppercase tracking-widest text-[var(--text-secondary)] hover:text-[var(--text-primary)] mb-6 sm:mb-8 transition-all active:scale-95">
+      <Link to="/" className="inline-flex items-center gap-2 text-xs sm:text-sm font-semibold text-[var(--text-secondary)] hover:text-[var(--text-primary)] mb-6 sm:mb-8 transition-transform active:scale-95">
         <ArrowLeft size={16} /> {t('common.back', 'Retour')}
       </Link>
 
       <div className="mb-8 sm:mb-10 text-center md:text-left">
-        <h1 className="text-2xl sm:text-4xl md:text-5xl font-light italic font-serif tracking-tight mb-2 uppercase">{t('settings.profile', 'Mon Profil')}</h1>
+        <h1 className="text-2xl sm:text-4xl md:text-5xl font-bold tracking-tight mb-2">{t('settings.profile', 'Mon Profil')}</h1>
         <p className="text-[9px] sm:text-sm text-[var(--text-secondary)] font-medium">
           {user ? user.email : t('settings.guest', 'Mode Invité - Connectez-vous pour plus d\'options.')}
         </p>
@@ -220,6 +223,12 @@ export default function Settings() {
                 </button>
               </div>
 
+                {notificationError && (
+                  <div className="mt-3 p-3 rounded-md bg-yellow-50 border border-yellow-200 text-yellow-800 text-sm">
+                    {notificationError}
+                  </div>
+                )}
+
               <div className="py-6 border-b border-[var(--border-color)]">
                 <h3 className="text-xs font-bold uppercase tracking-widest mb-4 flex items-center gap-2">
                   <MapPin size={16} /> {t('settings.radius', 'Mes Zones de Sécurité (Périmètre)')}
@@ -232,7 +241,7 @@ export default function Settings() {
                     <button
                       key={km}
                       onClick={() => { setRadius(km); setPreferences({ dangerRadius: km }); }}
-                      className={cn("px-4 py-2 rounded-full text-[10px] font-bold uppercase transition-all active:scale-95 border", radius === km ? "bg-red-600 text-white border-red-600" : "bg-transparent text-[var(--text-secondary)] border-[var(--border-color)] hover:border-[var(--text-primary)]")}
+                      className={cn("px-4 py-2 rounded-full text-[10px] font-bold uppercase transition-all active:scale-95 border", radius === km ? "bg-[var(--color-accent)] text-white border-[var(--color-accent)]" : "bg-transparent text-[var(--text-secondary)] border-[var(--border-color)] hover:border-[var(--text-primary)]")}
                     >
                       {km} KM
                     </button>
@@ -258,12 +267,21 @@ export default function Settings() {
 
               <div className="py-6 border-b border-[var(--border-color)]">
                 <h3 className="text-xs font-bold uppercase tracking-widest mb-4">
-                  {t('settings.cities', 'Villes suivies')}
+                  {t('settings.regions', 'Régions suivies')}
                 </h3>
                 <div className="flex flex-wrap gap-2">
-                  {CITIES.map(city => (
-                    <button key={city} onClick={() => handleToggleCity(city)} className={cn("px-3 py-1.5 rounded-full text-[9px] font-bold uppercase transition-all active:scale-95 border", preferences.subscribedCities.includes(city) ? "bg-[var(--text-primary)] text-[var(--bg-primary)] border-[var(--text-primary)]" : "bg-transparent text-[var(--text-secondary)] border-[var(--border-color)] hover:border-[var(--text-primary)]")}>
-                      {city}
+                  {SELECTABLE_REGIONS.map((region) => (
+                    <button
+                      key={region}
+                      onClick={() => handleToggleRegion(region)}
+                      className={cn(
+                        "px-3 py-1.5 rounded-full text-[9px] font-bold uppercase transition-all active:scale-95 border",
+                        preferences.subscribedRegions.includes(region)
+                          ? "bg-[var(--text-primary)] text-[var(--bg-primary)] border-[var(--text-primary)]"
+                          : "bg-transparent text-[var(--text-secondary)] border-[var(--border-color)] hover:border-[var(--text-primary)]"
+                      )}
+                    >
+                      {region}
                     </button>
                   ))}
                 </div>

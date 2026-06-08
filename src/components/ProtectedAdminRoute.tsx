@@ -23,7 +23,7 @@ export default function ProtectedAdminRoute({ children }: ProtectedRouteProps) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-[var(--bg-primary)]">
         <div className="flex flex-col items-center gap-4">
-          <div className="w-12 h-12 border-4 border-[var(--border-color)] border-t-blue-500 rounded-full animate-spin" />
+          <div className="w-12 h-12 border-4 border-[var(--border-color)] border-t-[var(--color-accent)] rounded-full animate-spin" />
           <p className="text-[var(--text-secondary)] text-sm">Vérification de l'authentification...</p>
         </div>
       </div>
@@ -41,7 +41,7 @@ export default function ProtectedAdminRoute({ children }: ProtectedRouteProps) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-[var(--bg-primary)]">
         <div className="flex flex-col items-center gap-4">
-          <div className="w-12 h-12 border-4 border-[var(--border-color)] border-t-blue-500 rounded-full animate-spin" />
+          <div className="w-12 h-12 border-4 border-[var(--border-color)] border-t-[var(--color-accent)] rounded-full animate-spin" />
           <p className="text-[var(--text-secondary)] text-sm">Vérification des permissions...</p>
         </div>
       </div>
@@ -70,7 +70,7 @@ export default function ProtectedAdminRoute({ children }: ProtectedRouteProps) {
           </div>
           <button
             onClick={() => window.location.reload()}
-            className="w-full px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all active:scale-95 font-semibold"
+            className="w-full px-4 py-2 bg-[var(--color-accent)] hover:bg-[var(--color-accent)] text-white rounded-lg transition-all active:scale-95 font-semibold"
           >
             Recharger
           </button>

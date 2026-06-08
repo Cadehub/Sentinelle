@@ -90,7 +90,7 @@ export default function Step2DetailsForm({ subType, onSubmit, onBack, submitLabe
         <select
           value={details.category || ''}
           onChange={(e) => handleChange('category', e.target.value)}
-          className="w-full px-4 py-3 border border-[var(--border-color)] rounded-lg bg-[var(--bg-primary)] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full px-4 py-3 border border-[var(--border-color)] rounded-lg bg-[var(--bg-primary)] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]"
         >
           <option value="">Sélectionnez une catégorie</option>
           <option value="CNI">CNI (Carte d'Identité Nationale)</option>
@@ -110,7 +110,7 @@ export default function Step2DetailsForm({ subType, onSubmit, onBack, submitLabe
           value={details.full_name || ''}
           onChange={(e) => handleChange('full_name', e.target.value)}
           placeholder="Ex: Jean Dupont"
-          className="w-full px-4 py-3 border border-[var(--border-color)] rounded-lg bg-[var(--bg-primary)] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full px-4 py-3 border border-[var(--border-color)] rounded-lg bg-[var(--bg-primary)] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]"
         />
       </div>
 
@@ -123,7 +123,7 @@ export default function Step2DetailsForm({ subType, onSubmit, onBack, submitLabe
           value={details.document_number || ''}
           onChange={(e) => handleChange('document_number', e.target.value)}
           placeholder="Ex: 123456789"
-          className="w-full px-4 py-3 border border-[var(--border-color)] rounded-lg bg-[var(--bg-primary)] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full px-4 py-3 border border-[var(--border-color)] rounded-lg bg-[var(--bg-primary)] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]"
         />
       </div>
     </div>
@@ -140,7 +140,7 @@ export default function Step2DetailsForm({ subType, onSubmit, onBack, submitLabe
           value={details.full_name || ''}
           onChange={(e) => handleChange('full_name', e.target.value)}
           placeholder="Ex: Jean Dupont"
-          className="w-full px-4 py-3 border border-[var(--border-color)] rounded-lg bg-[var(--bg-primary)] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full px-4 py-3 border border-[var(--border-color)] rounded-lg bg-[var(--bg-primary)] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]"
         />
       </div>
 
@@ -156,7 +156,7 @@ export default function Step2DetailsForm({ subType, onSubmit, onBack, submitLabe
             placeholder="25"
             min="0"
             max="120"
-            className="w-full px-4 py-3 border border-[var(--border-color)] rounded-lg bg-[var(--bg-primary)] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-4 py-3 border border-[var(--border-color)] rounded-lg bg-[var(--bg-primary)] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]"
           />
         </div>
 
@@ -167,7 +167,7 @@ export default function Step2DetailsForm({ subType, onSubmit, onBack, submitLabe
           <select
             value={details.gender || ''}
             onChange={(e) => handleChange('gender', e.target.value)}
-            className="w-full px-4 py-3 border border-[var(--border-color)] rounded-lg bg-[var(--bg-primary)] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-4 py-3 border border-[var(--border-color)] rounded-lg bg-[var(--bg-primary)] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]"
           >
             <option value="">Sélectionnez</option>
             <option value="Homme">Homme</option>
@@ -186,7 +186,7 @@ export default function Step2DetailsForm({ subType, onSubmit, onBack, submitLabe
           onChange={(e) => handleChange('distinctive_marks', e.target.value)}
           placeholder="Ex: Cicatrice au bras droit, tatouage, lunettes..."
           rows={2}
-          className="w-full px-4 py-3 border border-[var(--border-color)] rounded-lg bg-[var(--bg-primary)] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full px-4 py-3 border border-[var(--border-color)] rounded-lg bg-[var(--bg-primary)] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]"
         />
       </div>
 
@@ -199,7 +199,7 @@ export default function Step2DetailsForm({ subType, onSubmit, onBack, submitLabe
           onChange={(e) => handleChange('clothing', e.target.value)}
           placeholder="Ex: T-shirt bleu, jean noir, chaussures blanches..."
           rows={2}
-          className="w-full px-4 py-3 border border-[var(--border-color)] rounded-lg bg-[var(--bg-primary)] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full px-4 py-3 border border-[var(--border-color)] rounded-lg bg-[var(--bg-primary)] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]"
         />
       </div>
     </div>
@@ -216,7 +216,7 @@ export default function Step2DetailsForm({ subType, onSubmit, onBack, submitLabe
           value={details.category || ''}
           onChange={(e) => handleChange('category', e.target.value)}
           placeholder="Ex: Sac à main, Montre, Clés, Téléphone..."
-          className="w-full px-4 py-3 border border-[var(--border-color)] rounded-lg bg-[var(--bg-primary)] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full px-4 py-3 border border-[var(--border-color)] rounded-lg bg-[var(--bg-primary)] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]"
         />
       </div>
 
@@ -229,7 +229,7 @@ export default function Step2DetailsForm({ subType, onSubmit, onBack, submitLabe
           value={details.brand || ''}
           onChange={(e) => handleChange('brand', e.target.value)}
           placeholder="Ex: Adidas, Apple, Samsung..."
-          className="w-full px-4 py-3 border border-[var(--border-color)] rounded-lg bg-[var(--bg-primary)] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full px-4 py-3 border border-[var(--border-color)] rounded-lg bg-[var(--bg-primary)] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]"
         />
       </div>
 
@@ -242,7 +242,7 @@ export default function Step2DetailsForm({ subType, onSubmit, onBack, submitLabe
           value={details.color || ''}
           onChange={(e) => handleChange('color', e.target.value)}
           placeholder="Ex: Noir, Bleu foncé, Rouge..."
-          className="w-full px-4 py-3 border border-[var(--border-color)] rounded-lg bg-[var(--bg-primary)] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full px-4 py-3 border border-[var(--border-color)] rounded-lg bg-[var(--bg-primary)] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]"
         />
       </div>
 
@@ -255,7 +255,7 @@ export default function Step2DetailsForm({ subType, onSubmit, onBack, submitLabe
           onChange={(e) => handleChange('distinctive_marks', e.target.value)}
           placeholder="Ex: Rayures, logos, écorchures, particularités..."
           rows={2}
-          className="w-full px-4 py-3 border border-[var(--border-color)] rounded-lg bg-[var(--bg-primary)] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full px-4 py-3 border border-[var(--border-color)] rounded-lg bg-[var(--bg-primary)] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]"
         />
       </div>
     </div>
@@ -272,7 +272,7 @@ export default function Step2DetailsForm({ subType, onSubmit, onBack, submitLabe
           value={details.species || ''}
           onChange={(e) => handleChange('species', e.target.value)}
           placeholder="Ex: Chien Berger allemand, Chat Siamois..."
-          className="w-full px-4 py-3 border border-[var(--border-color)] rounded-lg bg-[var(--bg-primary)] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full px-4 py-3 border border-[var(--border-color)] rounded-lg bg-[var(--bg-primary)] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]"
         />
       </div>
 
@@ -285,7 +285,7 @@ export default function Step2DetailsForm({ subType, onSubmit, onBack, submitLabe
           value={details.color || ''}
           onChange={(e) => handleChange('color', e.target.value)}
           placeholder="Ex: Noir et blanc, Roux, Gris..."
-          className="w-full px-4 py-3 border border-[var(--border-color)] rounded-lg bg-[var(--bg-primary)] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full px-4 py-3 border border-[var(--border-color)] rounded-lg bg-[var(--bg-primary)] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]"
         />
       </div>
 
@@ -298,7 +298,7 @@ export default function Step2DetailsForm({ subType, onSubmit, onBack, submitLabe
           value={details.name || ''}
           onChange={(e) => handleChange('name', e.target.value)}
           placeholder="Ex: Max, Bella, Minou..."
-          className="w-full px-4 py-3 border border-[var(--border-color)] rounded-lg bg-[var(--bg-primary)] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full px-4 py-3 border border-[var(--border-color)] rounded-lg bg-[var(--bg-primary)] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]"
         />
       </div>
 
@@ -311,7 +311,7 @@ export default function Step2DetailsForm({ subType, onSubmit, onBack, submitLabe
           onChange={(e) => handleChange('distinctive_marks', e.target.value)}
           placeholder="Ex: Collier bleu avec médaille, tatouage, puces électroniques..."
           rows={2}
-          className="w-full px-4 py-3 border border-[var(--border-color)] rounded-lg bg-[var(--bg-primary)] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full px-4 py-3 border border-[var(--border-color)] rounded-lg bg-[var(--bg-primary)] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]"
         />
       </div>
     </div>
@@ -326,7 +326,7 @@ export default function Step2DetailsForm({ subType, onSubmit, onBack, submitLabe
         <select
           value={details.vehicle_type || ''}
           onChange={(e) => handleChange('vehicle_type', e.target.value)}
-          className="w-full px-4 py-3 border border-[var(--border-color)] rounded-lg bg-[var(--bg-primary)] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full px-4 py-3 border border-[var(--border-color)] rounded-lg bg-[var(--bg-primary)] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]"
         >
           <option value="">Sélectionnez un type</option>
           <option value="Voiture">Voiture</option>
@@ -347,7 +347,7 @@ export default function Step2DetailsForm({ subType, onSubmit, onBack, submitLabe
             value={details.brand || ''}
             onChange={(e) => handleChange('brand', e.target.value)}
             placeholder="Ex: Toyota, BMW"
-            className="w-full px-4 py-3 border border-[var(--border-color)] rounded-lg bg-[var(--bg-primary)] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-4 py-3 border border-[var(--border-color)] rounded-lg bg-[var(--bg-primary)] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]"
           />
         </div>
 
@@ -360,7 +360,7 @@ export default function Step2DetailsForm({ subType, onSubmit, onBack, submitLabe
             value={details.model || ''}
             onChange={(e) => handleChange('model', e.target.value)}
             placeholder="Ex: Corolla, X3"
-            className="w-full px-4 py-3 border border-[var(--border-color)] rounded-lg bg-[var(--bg-primary)] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-4 py-3 border border-[var(--border-color)] rounded-lg bg-[var(--bg-primary)] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]"
           />
         </div>
       </div>
@@ -374,7 +374,7 @@ export default function Step2DetailsForm({ subType, onSubmit, onBack, submitLabe
           value={details.registration_number || ''}
           onChange={(e) => handleChange('registration_number', e.target.value)}
           placeholder="Ex: AA-123-BCD ou CM123ABC"
-          className="w-full px-4 py-3 border border-[var(--border-color)] rounded-lg bg-[var(--bg-primary)] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full px-4 py-3 border border-[var(--border-color)] rounded-lg bg-[var(--bg-primary)] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]"
         />
       </div>
 
@@ -387,7 +387,7 @@ export default function Step2DetailsForm({ subType, onSubmit, onBack, submitLabe
           value={details.color || ''}
           onChange={(e) => handleChange('color', e.target.value)}
           placeholder="Ex: Blanc, Noir, Bleu..."
-          className="w-full px-4 py-3 border border-[var(--border-color)] rounded-lg bg-[var(--bg-primary)] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full px-4 py-3 border border-[var(--border-color)] rounded-lg bg-[var(--bg-primary)] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]"
         />
       </div>
     </div>
@@ -431,9 +431,9 @@ export default function Step2DetailsForm({ subType, onSubmit, onBack, submitLabe
           type="button"
           onClick={() => fileInputRef.current?.click()}
           disabled={selectedImages.length >= 3}
-          className="w-full py-4 border-2 border-dashed border-[var(--border-color)] rounded-lg hover:border-blue-500 hover:bg-[var(--bg-card)] disabled:opacity-50 disabled:cursor-not-allowed transition flex flex-col items-center gap-2"
+          className="w-full py-4 border-2 border-dashed border-[var(--border-color)] rounded-lg hover:border-[var(--color-accent)] hover:bg-[var(--bg-card)] disabled:opacity-50 disabled:cursor-not-allowed transition flex flex-col items-center gap-2"
         >
-          <ImagePlus className="w-6 h-6 text-blue-500" />
+          <ImagePlus className="w-6 h-6 text-[var(--color-accent)]" />
           <span className="text-sm font-medium text-[var(--text-primary)]">
             {selectedImages.length >= 3 ? 'Limite de 3 images atteinte' : 'Cliquez pour ajouter des images'}
           </span>
@@ -524,7 +524,7 @@ export default function Step2DetailsForm({ subType, onSubmit, onBack, submitLabe
         <button
           onClick={handleNext}
           disabled={isSubmitting}
-          className="flex-1 py-3 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg font-bold flex items-center justify-center gap-2 transition"
+          className="flex-1 py-3 bg-[var(--color-accent)] hover:bg-[var(--color-accent)] disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg font-bold flex items-center justify-center gap-2 transition"
         >
           {submitLabel}
           <ChevronRight className="w-4 h-4" />

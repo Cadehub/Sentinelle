@@ -26,7 +26,7 @@ export default function Rules() {
         <section className="space-y-6">
           <div className="space-y-4">
             <h2 className="text-2xl sm:text-3xl font-bold flex items-center gap-2">
-              <Shield className="w-7 h-7 sm:w-8 sm:h-8 text-blue-600" />
+              <Shield className="w-7 h-7 sm:w-8 sm:h-8 text-[var(--color-accent)]" />
               Bienvenue sur Sentinelle
             </h2>
             <p className="text-[var(--text-secondary)] leading-relaxed text-base sm:text-lg">
@@ -43,7 +43,7 @@ export default function Rules() {
               <p className="text-sm text-[var(--text-tertiary)]">Protéger les utilisateurs contre les arnaques et harcèlements</p>
             </div>
             <div className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-lg p-4 space-y-2">
-              <CheckCircle2 className="w-6 h-6 text-blue-600" />
+              <CheckCircle2 className="w-6 h-6 text-[var(--color-accent)]" />
               <h3 className="font-semibold">Intégrité</h3>
               <p className="text-sm text-[var(--text-tertiary)]">Maintenir la confiance et la fiabilité de la plateforme</p>
             </div>
@@ -185,10 +185,10 @@ export default function Rules() {
           </p>
           <div className="space-y-2 text-sm">
             <p className="text-[var(--text-secondary)]">
-              <strong>Email:</strong> <a href="mailto:support@sentinelle.com" className="text-blue-600 hover:underline">support@sentinelle.com</a>
+              <strong>Email:</strong> <a href="mailto:support@sentinelle.com" className="text-[var(--color-accent)] hover:underline">support@sentinelle.com</a>
             </p>
             <p className="text-[var(--text-secondary)]">
-              <strong>WhatsApp:</strong> <a href="https://wa.me/237654016097" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">+237 654 016 097</a>
+              <strong>WhatsApp:</strong> <a href="https://wa.me/237654016097" target="_blank" rel="noopener noreferrer" className="text-[var(--color-accent)] hover:underline">+237 654 016 097</a>
             </p>
           </div>
         </section>
@@ -201,7 +201,7 @@ export default function Rules() {
           </p>
           <button
             onClick={() => navigate(-1)}
-            className="inline-block px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition duration-200"
+            className="inline-block px-6 py-2 bg-[var(--color-accent)] hover:bg-[var(--color-accent)] text-white font-medium rounded-lg transition duration-200"
           >
             Retour
           </button>
